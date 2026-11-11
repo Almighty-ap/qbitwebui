@@ -3,12 +3,14 @@ import { ArrowDown, ArrowUp } from 'lucide-react'
 import * as api from '../api/qbittorrent'
 import type { Instance } from '../api/instances'
 import { formatSpeed, formatSize } from '../utils/format'
+import { useI18n } from '../i18n'
 
 interface Props {
 	instances: Instance[]
 }
 
 export function MobileStats({ instances }: Props) {
+	const { t } = useI18n()
 	const torrentQueries = useQueries({
 		queries: instances.map((instance) => ({
 			queryKey: ['torrents', instance.id],
@@ -64,7 +66,7 @@ export function MobileStats({ instances }: Props) {
 						</div>
 						<div className="min-w-0">
 							<div className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-								Download
+								{t('common.download')}
 							</div>
 							<div
 								className="text-base font-semibold tabular-nums truncate"
@@ -89,7 +91,7 @@ export function MobileStats({ instances }: Props) {
 						</div>
 						<div className="min-w-0">
 							<div className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-								Upload
+								{t('common.upload')}
 							</div>
 							<div
 								className="text-base font-semibold tabular-nums truncate"
@@ -104,10 +106,10 @@ export function MobileStats({ instances }: Props) {
 
 			<div className="grid grid-cols-4 gap-2">
 				{[
-					{ label: 'Total', value: counts.total, color: 'var(--text-primary)' },
-					{ label: 'Leech', value: counts.downloading, color: 'var(--accent)' },
-					{ label: 'Seed', value: counts.seeding, color: '#a6e3a1' },
-					{ label: 'Paused', value: counts.paused, color: 'var(--text-muted)' },
+					{ label: t('mobile.total'), value: counts.total, color: 'var(--text-primary)' },
+					{ label: t('mobile.leech'), value: counts.downloading, color: 'var(--accent)' },
+					{ label: t('mobile.seed'), value: counts.seeding, color: '#a6e3a1' },
+					{ label: t('mobile.paused'), value: counts.paused, color: 'var(--text-muted)' },
 				].map((item) => (
 					<div
 						key={item.label}
@@ -130,7 +132,7 @@ export function MobileStats({ instances }: Props) {
 					style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 				>
 					<div className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-						All-Time Down
+						{t('mobile.allTimeDown')}
 					</div>
 					<div className="text-base font-semibold tabular-nums" style={{ color: 'var(--accent)' }}>
 						{formatSize(allTimeDownload)}
@@ -141,7 +143,7 @@ export function MobileStats({ instances }: Props) {
 					style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 				>
 					<div className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-						All-Time Up
+						{t('mobile.allTimeUp')}
 					</div>
 					<div className="text-base font-semibold tabular-nums" style={{ color: '#a6e3a1' }}>
 						{formatSize(allTimeUpload)}

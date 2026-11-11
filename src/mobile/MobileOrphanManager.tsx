@@ -3,6 +3,7 @@ import { Check, CheckCircle, ChevronLeft, HardDrive, Search } from 'lucide-react
 import { type Instance } from '../api/instances'
 import { deleteTorrents } from '../api/qbittorrent'
 import { formatSize } from '../utils/format'
+import { useI18n } from '../i18n'
 
 interface OrphanTorrent {
 	instanceId: number
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export function MobileOrphanManager({ instances, onBack }: Props) {
+	const { t } = useI18n()
 	const [scanning, setScanning] = useState(false)
 	const [orphans, setOrphans] = useState<OrphanTorrent[]>([])
 	const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -45,7 +47,7 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 			setOrphans(data.orphans)
 			setScanned(true)
 		} catch (e) {
-			setError(e instanceof Error ? e.message : 'Scan failed')
+			setError(e instanceof Error ? e.message : t('orphans.scanFailed'))
 		} finally {
 			setScanning(false)
 		}
@@ -107,10 +109,10 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 					</button>
 					<div className="flex-1">
 						<h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-							Orphan Manager
+							{t('orphans.manager')}
 						</h2>
 						<p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-							Find torrents with missing files
+							{t('orphans.findMissing')}
 						</p>
 					</div>
 				</div>
@@ -127,12 +129,12 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 								className="w-4 h-4 border-2 rounded-full animate-spin"
 								style={{ borderColor: 'var(--accent-contrast)', borderTopColor: 'transparent' }}
 							/>
-							Scanning...
+							{t('orphans.scanning')}
 						</>
 					) : (
 						<>
 							<Search className="w-5 h-5" strokeWidth={2} />
-							Scan All Instances
+							{t('orphans.scanAll')}
 						</>
 					)}
 				</button>
@@ -158,7 +160,7 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 							style={{ borderColor: 'var(--border)', borderTopColor: 'var(--accent)' }}
 						/>
 						<span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-							Scanning instances...
+							{t('orphans.scanningInstancesShort')}
 						</span>
 					</div>
 				)}
@@ -175,7 +177,7 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 							<HardDrive className="w-8 h-8" style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
 						</div>
 						<p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-							No instances configured
+							{t('common.noInstancesConfigured')}
 						</p>
 					</div>
 				)}
@@ -192,10 +194,10 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 							<CheckCircle className="w-8 h-8" style={{ color: '#a6e3a1' }} strokeWidth={1.5} />
 						</div>
 						<p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-							All clear!
+							{t('orphans.allClear')}
 						</p>
 						<p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-							No orphaned torrents found
+							{t('orphans.noneFound')}
 						</p>
 					</div>
 				)}
@@ -204,10 +206,10 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 					<div className="space-y-4">
 						<div className="flex items-center justify-between">
 							<button onClick={selectAll} className="text-sm" style={{ color: 'var(--accent)' }}>
-								{selected.size === orphans.length ? 'Deselect all' : 'Select all'}
+								{selected.size === orphans.length ? t('common.deselectAll') : t('common.selectAll')}
 							</button>
 							<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-								{selected.size} of {orphans.length} selected
+								{t('orphans.selectedOf', { selected: selected.size, total: orphans.length })}
 							</span>
 						</div>
 
@@ -255,10 +257,10 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 														<span>{formatSize(item.size)}</span>
 														<span>•</span>
 														{item.reason === 'missingFiles' ? (
-															<span style={{ color: 'var(--warning)' }}>Missing files</span>
+															<span style={{ color: 'var(--warning)' }}>{t('orphans.missingFiles')}</span>
 														) : (
 															<span style={{ color: 'var(--error)' }} title={item.trackerMessage}>
-																Unregistered
+																{t('orphans.unregistered')}
 															</span>
 														)}
 													</div>
@@ -287,7 +289,7 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 						className="w-full py-3 rounded-xl text-sm font-medium"
 						style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 					>
-						Delete {selected.size} Torrent{selected.size > 1 ? 's' : ''}
+						{t('orphans.deleteTorrentsCount', { count: selected.size })}
 					</button>
 				</div>
 			)}
@@ -304,11 +306,10 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 						style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 					>
 						<h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-							Delete Torrents
+							{t('torrents.deleteConfirmTitle')}
 						</h3>
 						<p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-							Delete <strong style={{ color: 'var(--text-primary)' }}>{selected.size}</strong> torrent
-							{selected.size > 1 ? 's' : ''}?
+							{t('orphans.deleteTorrentsConfirm', { count: selected.size })}
 						</p>
 						<label className="flex items-center gap-3 mt-4 cursor-pointer">
 							<div
@@ -325,7 +326,7 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 								{deleteFiles && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
 							</div>
 							<span className="text-sm" style={{ color: 'var(--text-primary)' }}>
-								Also delete files
+								{t('orphans.alsoDeleteFiles')}
 							</span>
 						</label>
 						<div className="flex gap-3 mt-5">
@@ -335,7 +336,7 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 								className="flex-1 py-3 rounded-xl text-sm font-medium disabled:opacity-50"
 								style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
 							>
-								Cancel
+								{t('common.cancel')}
 							</button>
 							<button
 								onClick={handleDelete}
@@ -343,7 +344,7 @@ export function MobileOrphanManager({ instances, onBack }: Props) {
 								className="flex-1 py-3 rounded-xl text-sm font-medium disabled:opacity-50"
 								style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 							>
-								{deleting ? 'Deleting...' : 'Delete'}
+								{deleting ? t('common.deleting') : t('common.delete')}
 							</button>
 						</div>
 					</div>

@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import type { SpeedLimitValues } from '../../utils/speedLimits'
+import { useI18n } from '../../i18n'
 
 interface Props {
 	value: SpeedLimitValues
@@ -15,8 +16,8 @@ interface Props {
 }
 
 const FIELDS = [
-	{ key: 'dl', label: 'Download (KiB/s)' },
-	{ key: 'up', label: 'Upload (KiB/s)' },
+	{ key: 'dl', label: 'torrents.dlLimitKiB' },
+	{ key: 'up', label: 'torrents.upLimitKiB' },
 ] as const
 
 export function SpeedLimitFields({
@@ -31,19 +32,20 @@ export function SpeedLimitFields({
 	autoFocus,
 	touchFocus,
 }: Props) {
+	const { t } = useI18n()
 	return (
 		<div className="grid grid-cols-2 gap-2">
 			{FIELDS.map(({ key, label }, i) => (
 				<label key={key} className="block min-w-0">
 					<span className={`block mb-1 ${labelClassName}`} style={{ color: 'var(--text-muted)' }}>
-						{label}
+						{t(label)}
 					</span>
 					<input
 						type="number"
 						min={0}
 						inputMode="numeric"
 						value={value[key]}
-						placeholder={placeholders?.[key] ?? 'Unlimited'}
+						placeholder={placeholders?.[key] ?? t('common.unlimited')}
 						onChange={(e) => onChange({ ...value, [key]: e.target.value })}
 						onKeyDown={(e) => {
 							if (e.key === 'Enter') onSubmit()

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useI18n } from '../i18n'
 
 interface Props {
 	anchor: HTMLElement
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export function RatioThresholdPopup({ anchor, threshold, onSave, onClose }: Props) {
+	const { t } = useI18n()
 	const [value, setValue] = useState(threshold.toString())
 	const ref = useRef<HTMLDivElement>(null)
 
@@ -51,7 +53,7 @@ export function RatioThresholdPopup({ anchor, threshold, onSave, onClose }: Prop
 			}}
 		>
 			<div className="text-[10px] uppercase tracking-wider font-medium mb-2" style={{ color: 'var(--text-muted)' }}>
-				Ratio Threshold
+				{t('popup.ratioThresholds')}
 			</div>
 			<div className="flex items-center justify-center gap-2 mb-3">
 				<span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#a6e3a1' }} />
@@ -76,7 +78,7 @@ export function RatioThresholdPopup({ anchor, threshold, onSave, onClose }: Prop
 				className="w-full py-1.5 rounded text-xs font-medium"
 				style={{ backgroundColor: 'var(--accent)', color: 'white' }}
 			>
-				Save
+				{t('common.save')}
 			</button>
 		</div>
 	)

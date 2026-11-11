@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
 import { Download } from 'lucide-react'
 import { register, login, type User } from '../api/auth'
+import { useI18n, translateError } from '../i18n'
+import { LanguageSwitcher } from './LanguageSwitcher'
 
 interface Props {
 	onSuccess: (user: User) => void
 }
 
 export function AuthForm({ onSuccess }: Props) {
+	const { t } = useI18n()
 	const [mode, setMode] = useState<'login' | 'register'>('login')
 	const [registrationDisabled, setRegistrationDisabled] = useState<boolean | null>(null)
 
@@ -27,7 +30,7 @@ export function AuthForm({ onSuccess }: Props) {
 		setError('')
 
 		if (mode === 'register' && password !== confirmPassword) {
-			setError('Passwords do not match')
+			setError(t('errors.passwordsDoNotMatch'))
 			return
 		}
 
@@ -36,7 +39,7 @@ export function AuthForm({ onSuccess }: Props) {
 			const user = mode === 'register' ? await register(username, password) : await login(username, password)
 			onSuccess(user)
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Operation failed')
+			setError(err instanceof Error ? err.message : t('common.failed'))
 		} finally {
 			setLoading(false)
 		}
@@ -47,6 +50,9 @@ export function AuthForm({ onSuccess }: Props) {
 			className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
 			style={{ backgroundColor: 'var(--bg-primary)' }}
 		>
+			<div className="absolute top-4 right-4 z-20">
+				<LanguageSwitcher />
+			</div>
 			<div
 				className="absolute inset-0"
 				style={{
@@ -102,7 +108,7 @@ export function AuthForm({ onSuccess }: Props) {
 									color: mode === 'login' ? 'var(--text-primary)' : 'var(--text-muted)',
 								}}
 							>
-								Sign In
+								{t('auth.submitLogin')}
 							</button>
 							<button
 								type="button"
@@ -116,7 +122,7 @@ export function AuthForm({ onSuccess }: Props) {
 									color: mode === 'register' ? 'var(--text-primary)' : 'var(--text-muted)',
 								}}
 							>
-								Register
+								{t('auth.register')}
 							</button>
 						</div>
 					)}
@@ -126,7 +132,7 @@ export function AuthForm({ onSuccess }: Props) {
 							className="mb-6 px-4 py-3 rounded-lg text-sm font-medium"
 							style={{ backgroundColor: 'color-mix(in srgb, var(--error) 10%, transparent)', color: 'var(--error)' }}
 						>
-							{error}
+							{translateError(error, t)}
 						</div>
 					)}
 
@@ -136,7 +142,7 @@ export function AuthForm({ onSuccess }: Props) {
 								className="block text-xs font-medium mb-2 uppercase tracking-wider"
 								style={{ color: 'var(--text-muted)' }}
 							>
-								Username
+								{t('auth.username')}
 							</label>
 							<input
 								type="text"
@@ -148,7 +154,7 @@ export function AuthForm({ onSuccess }: Props) {
 									borderColor: 'var(--border)',
 									color: 'var(--text-primary)',
 								}}
-								placeholder="username"
+								placeholder={t('auth.usernamePlaceholder')}
 								autoComplete="username"
 								required
 							/>
@@ -159,7 +165,7 @@ export function AuthForm({ onSuccess }: Props) {
 								className="block text-xs font-medium mb-2 uppercase tracking-wider"
 								style={{ color: 'var(--text-muted)' }}
 							>
-								Password
+								{t('auth.password')}
 							</label>
 							<input
 								type="password"
@@ -183,7 +189,7 @@ export function AuthForm({ onSuccess }: Props) {
 									className="block text-xs font-medium mb-2 uppercase tracking-wider"
 									style={{ color: 'var(--text-muted)' }}
 								>
-									Confirm Password
+									{t('auth.confirmPassword')}
 								</label>
 								<input
 									type="password"
@@ -212,16 +218,16 @@ export function AuthForm({ onSuccess }: Props) {
 						}}
 					>
 						<span className="relative font-semibold" style={{ color: 'var(--accent-contrast)' }}>
-							{loading ? 'Please wait...' : mode === 'register' ? 'Create Account' : 'Sign In'}
+							{loading ? t('auth.pleaseWait') : mode === 'register' ? t('auth.submitRegister') : t('auth.submitLogin')}
 						</span>
 					</button>
 
 					<p className="mt-6 text-center text-xs" style={{ color: 'var(--text-muted)' }}>
 						{mode === 'register' && registrationDisabled === false
-							? 'Create an account to manage your instances'
+							? t('auth.registerDesc')
 							: registrationDisabled
-								? 'Registration is disabled. Contact administrator for access.'
-								: 'Sign in to manage your qBittorrent instances'}
+								? t('auth.registrationDisabledDesc')
+								: t('auth.loginDesc')}
 					</p>
 				</div>
 			</form>

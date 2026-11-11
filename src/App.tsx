@@ -9,6 +9,7 @@ import { InstanceManager } from './components/InstanceManager'
 import { TorrentList } from './components/TorrentList'
 import { getMe, type User } from './api/auth'
 import { getInstances, type Instance } from './api/instances'
+import { useI18n } from './i18n'
 
 const MobileApp = lazy(() => import('./mobile/MobileApp').then((m) => ({ default: m.MobileApp })))
 
@@ -56,6 +57,7 @@ function setHash(tab: Tab, instanceId: number | null, tool?: Tool) {
 }
 
 export default function App() {
+	const { t } = useI18n()
 	const [view, setView] = useState<View>('loading')
 	const [user, setUser] = useState<User | null>(null)
 	const [currentInstance, setCurrentInstance] = useState<Instance | null>(null)
@@ -176,7 +178,7 @@ export default function App() {
 			<ThemeProvider>
 				<div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
 					<div className="text-sm" style={{ color: 'var(--text-muted)' }}>
-						Loading...
+						{t('common.loading')}
 					</div>
 				</div>
 			</ThemeProvider>
@@ -206,7 +208,7 @@ export default function App() {
 							style={{ backgroundColor: 'var(--bg-primary)' }}
 						>
 							<div className="text-sm" style={{ color: 'var(--text-muted)' }}>
-								Loading...
+								{t('common.loading')}
 							</div>
 						</div>
 					}

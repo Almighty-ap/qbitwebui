@@ -2,8 +2,10 @@ import { useState, useRef, useEffect } from 'react'
 import { Palette, Settings, Check } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 import { MobileThemeManager } from './MobileThemeManager'
+import { useI18n } from '../i18n'
 
 export function MobileThemeSwitcher() {
+	const { t } = useI18n()
 	const { theme, setTheme, themes, customThemes } = useTheme()
 	const [open, setOpen] = useState(false)
 	const [showManager, setShowManager] = useState(false)
@@ -36,7 +38,7 @@ export function MobileThemeSwitcher() {
 						>
 							{/* Official Themes */}
 							<div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider opacity-50 select-none text-[var(--text-muted)]">
-								Official
+								{t('theme.official')}
 							</div>
 							{themes.map((t) => (
 								<ThemeRow
@@ -55,7 +57,7 @@ export function MobileThemeSwitcher() {
 								<>
 									<div className="border-t border-[var(--border)]" />
 									<div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider opacity-50 select-none text-[var(--text-muted)]">
-										Custom
+										{t('theme.custom')}
 									</div>
 									{customThemes.map((t) => (
 										<ThemeRow
@@ -82,7 +84,7 @@ export function MobileThemeSwitcher() {
 								style={{ color: 'var(--text-secondary)' }}
 							>
 								<Settings className="w-4 h-4" strokeWidth={2} />
-								Manage Themes
+								{t('theme.manage')}
 							</button>
 						</div>
 					</>

@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react'
 import { getStats, type PeriodStats } from '../api/stats'
+import { tGlobal } from '../i18n'
 
 export const PERIODS = [
-	{ value: '15m', label: '15 min' },
-	{ value: '30m', label: '30 min' },
-	{ value: '1h', label: '1 hour' },
-	{ value: '4h', label: '4 hours' },
-	{ value: '12h', label: '12 hours' },
-	{ value: '1d', label: '1 day' },
-	{ value: '1w', label: '1 week' },
-	{ value: '1mo', label: '1 month' },
-	{ value: '6mo', label: '6 months' },
-	{ value: '1y', label: '1 year' },
-	{ value: 'all', label: 'All time' },
+	{ value: '15m', key: 'stats.period15m' },
+	{ value: '30m', key: 'stats.period30m' },
+	{ value: '1h', key: 'stats.period1h' },
+	{ value: '4h', key: 'stats.period4h' },
+	{ value: '12h', key: 'stats.period12h' },
+	{ value: '1d', key: 'stats.period1d' },
+	{ value: '1w', key: 'stats.period1w' },
+	{ value: '1mo', key: 'stats.period1mo' },
+	{ value: '6mo', key: 'stats.period6mo' },
+	{ value: '1y', key: 'stats.period1y' },
+	{ value: 'all', key: 'stats.allTime' },
 ] as const
 
 export interface PeriodData {
@@ -75,7 +76,7 @@ export function useStats(): UseStatsResult {
 					selectedInstance === 'all' ? stats : stats.filter((s) => s.instanceId === Number(selectedInstance))
 				return {
 					period,
-					label: periodConfig.label,
+					label: tGlobal(periodConfig.key),
 					uploaded: filtered.reduce((sum, s) => sum + s.uploaded, 0),
 					downloaded: filtered.reduce((sum, s) => sum + s.downloaded, 0),
 					hasData: filtered.some((s) => s.hasData) || period === 'all',

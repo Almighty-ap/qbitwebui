@@ -9,6 +9,7 @@ import { MobileStats } from './MobileStats'
 import { MobileTorrentList } from './MobileTorrentList'
 import { MobileThemeSwitcher } from './MobileThemeSwitcher'
 import { InstanceProvider } from '../contexts/InstanceProvider'
+import { useI18n } from '../i18n'
 
 const MobileTorrentDetail = lazy(() =>
 	import('./MobileTorrentDetail').then((m) => ({ default: m.MobileTorrentDetail }))
@@ -110,6 +111,7 @@ interface Props {
 }
 
 export function MobileApp({ username, onLogout, authDisabled }: Props) {
+	const { t } = useI18n()
 	const [instances, setInstances] = useState<Instance[]>([])
 	const [selectedInstance, setSelectedInstance] = useState<Instance | 'all'>('all')
 	const [loading, setLoading] = useState(true)
@@ -193,7 +195,7 @@ export function MobileApp({ username, onLogout, authDisabled }: Props) {
 						<Download className="w-5 h-5 animate-pulse" style={{ color: 'var(--accent-contrast)' }} strokeWidth={2.5} />
 					</div>
 					<span className="text-sm" style={{ color: 'var(--text-muted)' }}>
-						Loading...
+						{t('common.loading')}
 					</span>
 				</div>
 			</div>
@@ -213,10 +215,10 @@ export function MobileApp({ username, onLogout, authDisabled }: Props) {
 					<Server className="w-8 h-8" style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
 				</div>
 				<h2 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-					No Instances
+					{t('instances.noInstances')}
 				</h2>
 				<p className="text-sm text-center mb-6" style={{ color: 'var(--text-muted)' }}>
-					Add a qBittorrent instance using the desktop version to get started.
+					{t('instances.noInstancesMobileDesc')}
 				</p>
 				{!authDisabled && (
 					<button
@@ -224,7 +226,7 @@ export function MobileApp({ username, onLogout, authDisabled }: Props) {
 						className="px-6 py-3 rounded-xl text-sm font-medium"
 						style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
 					>
-						Logout
+						{t('auth.logout')}
 					</button>
 				)}
 			</div>
@@ -249,7 +251,7 @@ export function MobileApp({ username, onLogout, authDisabled }: Props) {
 							)}
 							{mainTab === 'tools' && (
 								<span className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
-									Tools
+									{t('header.tools')}
 								</span>
 							)}
 						</div>
@@ -304,7 +306,7 @@ export function MobileApp({ username, onLogout, authDisabled }: Props) {
 													style={{ color: 'var(--error)' }}
 												>
 													<LogOut className="w-4 h-4" strokeWidth={1.5} />
-													Logout
+													{t('auth.logout')}
 												</button>
 											</div>
 										</>
@@ -336,7 +338,7 @@ export function MobileApp({ username, onLogout, authDisabled }: Props) {
 									onChange={(e) => setSearch(e.target.value)}
 									onFocus={() => setSearchFocused(true)}
 									onBlur={() => setSearchFocused(false)}
-									placeholder="Search torrents..."
+									placeholder={t('search.searchTorrents')}
 									className="flex-1 bg-transparent outline-none"
 									style={{ color: 'var(--text-primary)', fontSize: '16px' }}
 								/>
@@ -399,7 +401,7 @@ export function MobileApp({ username, onLogout, authDisabled }: Props) {
 							style={{ color: mainTab === 'torrents' ? 'var(--accent)' : 'var(--text-muted)' }}
 						>
 							<Download className="w-6 h-6" strokeWidth={mainTab === 'torrents' ? 2 : 1.5} />
-							<span className="text-xs font-medium">Torrents</span>
+							<span className="text-xs font-medium">{t('mobile.torrents')}</span>
 						</button>
 						<button
 							onClick={() => setShowAddModal(true)}
@@ -407,7 +409,7 @@ export function MobileApp({ username, onLogout, authDisabled }: Props) {
 							style={{ color: 'var(--text-muted)' }}
 						>
 							<Plus className="w-6 h-6" strokeWidth={1.5} />
-							<span className="text-xs font-medium">Add</span>
+							<span className="text-xs font-medium">{t('common.add')}</span>
 						</button>
 						<button
 							onClick={() => handleMainTabChange('tools')}
@@ -415,7 +417,7 @@ export function MobileApp({ username, onLogout, authDisabled }: Props) {
 							style={{ color: mainTab === 'tools' ? 'var(--accent)' : 'var(--text-muted)' }}
 						>
 							<Wrench className="w-6 h-6" strokeWidth={mainTab === 'tools' ? 2 : 1.5} />
-							<span className="text-xs font-medium">Tools</span>
+							<span className="text-xs font-medium">{t('header.tools')}</span>
 						</button>
 					</div>
 				</nav>

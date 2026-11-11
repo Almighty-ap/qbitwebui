@@ -15,6 +15,7 @@ import {
 	type Category,
 } from '../api/qbittorrent'
 import type { RSSItems, RSSFeedData, RSSRule, RSSRules, MatchingArticles } from '../types/rss'
+import { tGlobal } from '../i18n'
 
 const FEED_REFRESH_DELAY = 500
 
@@ -121,7 +122,7 @@ export function useRSSManager({ instances, onViewChange }: UseRSSManagerOptions)
 			setSelectedFeed((prev) => (prev ? flat.find((f) => f.path === prev.path) || null : null))
 		} catch (err) {
 			if (!mountedRef.current) return
-			setError(err instanceof Error ? err.message : 'Failed to load feeds')
+			setError(err instanceof Error ? err.message : tGlobal('rss.failedLoadFeeds'))
 		}
 	}, [selectedInstance])
 
@@ -133,7 +134,7 @@ export function useRSSManager({ instances, onViewChange }: UseRSSManagerOptions)
 			setRules(data)
 		} catch (err) {
 			if (!mountedRef.current) return
-			setError(err instanceof Error ? err.message : 'Failed to load rules')
+			setError(err instanceof Error ? err.message : tGlobal('rss.failedLoadRules'))
 		}
 	}, [selectedInstance])
 
@@ -221,7 +222,7 @@ export function useRSSManager({ instances, onViewChange }: UseRSSManagerOptions)
 			}
 		} catch (err) {
 			if (!mountedRef.current) return
-			setError(err instanceof Error ? err.message : 'Failed to add feed')
+			setError(err instanceof Error ? err.message : tGlobal('rss.failedAddFeed'))
 		} finally {
 			if (mountedRef.current) setSubmitting(false)
 		}
@@ -239,7 +240,7 @@ export function useRSSManager({ instances, onViewChange }: UseRSSManagerOptions)
 			await loadFeeds()
 		} catch (err) {
 			if (!mountedRef.current) return
-			setError(err instanceof Error ? err.message : 'Failed to add folder')
+			setError(err instanceof Error ? err.message : tGlobal('rss.failedAddFolder'))
 		} finally {
 			if (mountedRef.current) setSubmitting(false)
 		}
@@ -258,7 +259,7 @@ export function useRSSManager({ instances, onViewChange }: UseRSSManagerOptions)
 			await loadFeeds()
 		} catch (err) {
 			if (!mountedRef.current) return
-			setError(err instanceof Error ? err.message : 'Failed to delete')
+			setError(err instanceof Error ? err.message : tGlobal('rss.failedDelete'))
 		}
 	}
 
@@ -270,7 +271,7 @@ export function useRSSManager({ instances, onViewChange }: UseRSSManagerOptions)
 			await loadFeeds()
 		} catch (err) {
 			if (!mountedRef.current) return
-			setError(err instanceof Error ? err.message : 'Failed to refresh')
+			setError(err instanceof Error ? err.message : tGlobal('rss.failedRefresh'))
 		} finally {
 			if (mountedRef.current) setRefreshing(null)
 		}
@@ -292,7 +293,7 @@ export function useRSSManager({ instances, onViewChange }: UseRSSManagerOptions)
 			}, 2000)
 		} catch (err) {
 			if (!mountedRef.current) return
-			setError(err instanceof Error ? err.message : 'Failed to save rule')
+			setError(err instanceof Error ? err.message : tGlobal('rss.failedSaveRule'))
 		} finally {
 			if (mountedRef.current) setSavingRule(false)
 		}
@@ -321,7 +322,7 @@ export function useRSSManager({ instances, onViewChange }: UseRSSManagerOptions)
 			onViewChange?.('editor')
 		} catch (err) {
 			if (!mountedRef.current) return
-			setError(err instanceof Error ? err.message : 'Failed to create rule')
+			setError(err instanceof Error ? err.message : tGlobal('rss.failedCreateRule'))
 		} finally {
 			if (mountedRef.current) setSubmitting(false)
 		}
@@ -340,7 +341,7 @@ export function useRSSManager({ instances, onViewChange }: UseRSSManagerOptions)
 			await loadRules()
 		} catch (err) {
 			if (!mountedRef.current) return
-			setError(err instanceof Error ? err.message : 'Failed to delete rule')
+			setError(err instanceof Error ? err.message : tGlobal('rss.failedDeleteRule'))
 		}
 	}
 
@@ -353,7 +354,7 @@ export function useRSSManager({ instances, onViewChange }: UseRSSManagerOptions)
 			setMatchingArticles(data)
 		} catch (err) {
 			if (!mountedRef.current) return
-			setError(err instanceof Error ? err.message : 'Failed to load matches')
+			setError(err instanceof Error ? err.message : tGlobal('rss.failedLoadMatches'))
 		} finally {
 			if (mountedRef.current) setLoadingMatches(false)
 		}

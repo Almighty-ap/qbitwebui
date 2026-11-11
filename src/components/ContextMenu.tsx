@@ -22,6 +22,7 @@ import {
 } from '../hooks/useTorrents'
 import type { Torrent } from '../types/qbittorrent'
 import { commonKiB, getLimitChanges, type SpeedLimitValues } from '../utils/speedLimits'
+import { useI18n } from '../i18n'
 
 interface Props {
 	x: number
@@ -34,6 +35,7 @@ type Submenu = 'category' | 'addTag' | 'removeTag' | 'delete' | null
 type EditorMode = 'rename' | 'savePath' | 'downloadPath' | 'speedLimits' | null
 
 export function ContextMenu({ x, y, torrents, onClose }: Props) {
+	const { t } = useI18n()
 	const [submenu, setSubmenu] = useState<Submenu>(null)
 	const [editorMode, setEditorMode] = useState<EditorMode>(null)
 	const [inputValue, setInputValue] = useState('')
@@ -204,19 +206,19 @@ export function ContextMenu({ x, y, torrents, onClose }: Props) {
 
 	const editorTitle =
 		editorMode === 'rename'
-			? 'Rename torrent'
+			? t('torrents.renameTorrent')
 			: editorMode === 'savePath'
-				? 'Change save path'
+				? t('torrents.changeSavePath')
 				: editorMode === 'speedLimits'
-					? 'Speed limits'
-					: 'Change download path'
-	const editorActionLabel = editorMode === 'rename' ? 'Rename' : 'Save'
+					? t('torrents.speedLimits')
+					: t('torrents.changeDownloadPath')
+	const editorActionLabel = editorMode === 'rename' ? t('torrents.rename') : t('common.save')
 	const editorPlaceholder =
 		editorMode === 'rename'
-			? 'Enter torrent name'
+			? t('torrents.enterTorrentName')
 			: editorMode === 'savePath'
-				? 'Enter save path'
-				: 'Enter download path'
+				? t('torrents.enterSavePath')
+				: t('torrents.enterDownloadPath')
 
 	if (editorMode && (editorMode !== 'rename' || isSingle)) {
 		return (
@@ -232,8 +234,8 @@ export function ContextMenu({ x, y, torrents, onClose }: Props) {
 							onSubmit={handleEditorSubmit}
 							onCancel={onClose}
 							placeholders={{
-								dl: commonDl === null ? 'Mixed' : undefined,
-								up: commonUp === null ? 'Mixed' : undefined,
+								dl: commonDl === null ? t('torrents.mixed') : undefined,
+								up: commonUp === null ? t('torrents.mixed') : undefined,
 							}}
 							inputClassName="w-full px-2 py-1.5 rounded-lg border text-sm"
 							inputStyle={{
@@ -288,7 +290,7 @@ export function ContextMenu({ x, y, torrents, onClose }: Props) {
 						className="flex-1 py-1.5 rounded-lg text-xs"
 						style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-muted)' }}
 					>
-						Cancel
+						{t('common.cancel')}
 					</button>
 					<button
 						onClick={handleEditorSubmit}
@@ -305,18 +307,18 @@ export function ContextMenu({ x, y, torrents, onClose }: Props) {
 
 	return (
 		<div ref={ref} className="rounded-lg border shadow-xl z-[200] py-1 min-w-[160px]" style={menuStyle}>
-			<MenuItem onClick={handleStart}>Start</MenuItem>
-			<MenuItem onClick={handleStop}>Stop</MenuItem>
-			<MenuItem onClick={handleRecheck}>Force Recheck</MenuItem>
-			<MenuItem onClick={handleReannounce}>Force Reannounce</MenuItem>
+			<MenuItem onClick={handleStart}>{t('torrents.start')}</MenuItem>
+			<MenuItem onClick={handleStop}>{t('torrents.stop')}</MenuItem>
+			<MenuItem onClick={handleRecheck}>{t('torrents.forceRecheck')}</MenuItem>
+			<MenuItem onClick={handleReannounce}>{t('torrents.forceReannounce')}</MenuItem>
 			<div className="h-px my-1" style={{ backgroundColor: 'var(--border)' }} />
 			<MenuItem onClick={() => setSubmenu(submenu === 'category' ? null : 'category')} hasSubmenu>
-				Set Category
+				{t('torrents.setCategory')}
 			</MenuItem>
 			{submenu === 'category' && (
 				<div className="pl-2">
 					<MenuItem onClick={() => handleSetCategory('')} small>
-						None
+						{t('common.none')}
 					</MenuItem>
 					{Object.keys(categories).map((cat) => (
 						<MenuItem key={cat} onClick={() => handleSetCategory(cat)} small>
@@ -326,13 +328,13 @@ export function ContextMenu({ x, y, torrents, onClose }: Props) {
 				</div>
 			)}
 			<MenuItem onClick={() => setSubmenu(submenu === 'addTag' ? null : 'addTag')} hasSubmenu>
-				Add Tag
+				{t('torrents.addTag')}
 			</MenuItem>
 			{submenu === 'addTag' && (
 				<div className="pl-2">
 					{tags.length === 0 ? (
 						<div className="px-3 py-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
-							No tags
+							{t('torrents.noTags')}
 						</div>
 					) : (
 						tags.map((tag) => (
@@ -346,7 +348,7 @@ export function ContextMenu({ x, y, torrents, onClose }: Props) {
 			{isSingle && currentTags.length > 0 && (
 				<>
 					<MenuItem onClick={() => setSubmenu(submenu === 'removeTag' ? null : 'removeTag')} hasSubmenu>
-						Remove Tag
+						{t('torrents.removeTag')}
 					</MenuItem>
 					{submenu === 'removeTag' && (
 						<div className="pl-2">
@@ -362,24 +364,24 @@ export function ContextMenu({ x, y, torrents, onClose }: Props) {
 			{isSingle && (
 				<>
 					<div className="h-px my-1" style={{ backgroundColor: 'var(--border)' }} />
-					<MenuItem onClick={startRename}>Rename</MenuItem>
+					<MenuItem onClick={startRename}>{t('torrents.rename')}</MenuItem>
 				</>
 			)}
-			<MenuItem onClick={startSetSavePath}>Change Save Path</MenuItem>
-			{showDownloadPath && <MenuItem onClick={startSetDownloadPath}>Change Download Path</MenuItem>}
-			<MenuItem onClick={startSetSpeedLimits}>Speed Limits</MenuItem>
+			<MenuItem onClick={startSetSavePath}>{t('torrents.changeSavePath')}</MenuItem>
+			{showDownloadPath && <MenuItem onClick={startSetDownloadPath}>{t('torrents.changeDownloadPath')}</MenuItem>}
+			<MenuItem onClick={startSetSpeedLimits}>{t('torrents.speedLimits')}</MenuItem>
 			<div className="h-px my-1" style={{ backgroundColor: 'var(--border)' }} />
-			<MenuItem onClick={handleExport}>Export</MenuItem>
+			<MenuItem onClick={handleExport}>{t('torrents.export')}</MenuItem>
 			<MenuItem onClick={() => setSubmenu(submenu === 'delete' ? null : 'delete')} hasSubmenu>
-				Delete
+				{t('common.delete')}
 			</MenuItem>
 			{submenu === 'delete' && (
 				<div className="pl-2">
 					<MenuItem onClick={() => handleDelete(false)} small>
-						Keep files
+						{t('torrents.keepFiles')}
 					</MenuItem>
 					<MenuItem onClick={() => handleDelete(true)} small>
-						Delete files
+						{t('torrents.deleteFiles')}
 					</MenuItem>
 				</div>
 			)}

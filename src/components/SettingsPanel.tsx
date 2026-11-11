@@ -11,13 +11,14 @@ import { BitTorrentTab } from './settings/BitTorrentTab'
 import { RSSTab } from './settings/RSSTab'
 import { WebUITab } from './settings/WebUITab'
 import { AdvancedTab } from './settings/AdvancedTab'
+import { useI18n, type Lang } from '../i18n'
 
 type SettingsTab = 'behavior' | 'downloads' | 'connection' | 'speed' | 'bittorrent' | 'rss' | 'webui' | 'advanced'
 
-const TABS: { id: SettingsTab; label: string; icon: ReactNode }[] = [
+const TABS: { id: SettingsTab; labelKey: string; icon: ReactNode }[] = [
 	{
 		id: 'behavior',
-		label: 'Behavior',
+		labelKey: 'settings.behavior',
 		icon: (
 			<path
 				strokeLinecap="round"
@@ -28,7 +29,7 @@ const TABS: { id: SettingsTab; label: string; icon: ReactNode }[] = [
 	},
 	{
 		id: 'downloads',
-		label: 'Downloads',
+		labelKey: 'settings.downloads',
 		icon: (
 			<path
 				strokeLinecap="round"
@@ -39,7 +40,7 @@ const TABS: { id: SettingsTab; label: string; icon: ReactNode }[] = [
 	},
 	{
 		id: 'connection',
-		label: 'Connection',
+		labelKey: 'settings.connection',
 		icon: (
 			<path
 				strokeLinecap="round"
@@ -50,7 +51,7 @@ const TABS: { id: SettingsTab; label: string; icon: ReactNode }[] = [
 	},
 	{
 		id: 'speed',
-		label: 'Speed',
+		labelKey: 'settings.speed',
 		icon: (
 			<path
 				strokeLinecap="round"
@@ -61,7 +62,7 @@ const TABS: { id: SettingsTab; label: string; icon: ReactNode }[] = [
 	},
 	{
 		id: 'bittorrent',
-		label: 'BitTorrent',
+		labelKey: 'settings.bittorrent',
 		icon: (
 			<path
 				strokeLinecap="round"
@@ -72,7 +73,7 @@ const TABS: { id: SettingsTab; label: string; icon: ReactNode }[] = [
 	},
 	{
 		id: 'rss',
-		label: 'RSS',
+		labelKey: 'settings.rss',
 		icon: (
 			<path
 				strokeLinecap="round"
@@ -83,7 +84,7 @@ const TABS: { id: SettingsTab; label: string; icon: ReactNode }[] = [
 	},
 	{
 		id: 'webui',
-		label: 'WebUI',
+		labelKey: 'settings.webui',
 		icon: (
 			<path
 				strokeLinecap="round"
@@ -94,7 +95,7 @@ const TABS: { id: SettingsTab; label: string; icon: ReactNode }[] = [
 	},
 	{
 		id: 'advanced',
-		label: 'Advanced',
+		labelKey: 'settings.advanced',
 		icon: (
 			<path
 				strokeLinecap="round"
@@ -111,6 +112,7 @@ interface Props {
 }
 
 export function SettingsPanel({ instance, onClose }: Props) {
+	const { t, lang, setLang } = useI18n()
 	const [activeTab, setActiveTab] = useState<SettingsTab>('behavior')
 	const [loading, setLoading] = useState(true)
 	const [saving, setSaving] = useState(false)
@@ -127,7 +129,7 @@ export function SettingsPanel({ instance, onClose }: Props) {
 				setPreferencesState(prefs)
 				setOriginalPreferences(prefs)
 			} catch {
-				setError('Failed to load preferences')
+				setError(t('settings.failedToLoad'))
 			} finally {
 				setLoading(false)
 			}
@@ -155,7 +157,7 @@ export function SettingsPanel({ instance, onClose }: Props) {
 			}
 			onClose()
 		} catch {
-			setError('Failed to save preferences')
+			setError(t('settings.failedToSave'))
 		} finally {
 			setSaving(false)
 		}
@@ -167,7 +169,7 @@ export function SettingsPanel({ instance, onClose }: Props) {
 	)
 
 	function handleClose() {
-		if (hasChanges && !confirm('You have unsaved changes. Discard them?')) return
+		if (hasChanges && !confirm(t('settings.discardConfirm'))) return
 		onClose()
 	}
 
@@ -183,13 +185,23 @@ export function SettingsPanel({ instance, onClose }: Props) {
 				<div className="flex items-center gap-3">
 					<Settings className="w-4 h-4" style={{ color: 'var(--accent)' }} strokeWidth={1.5} />
 					<span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-						Settings
+						{t('settings.title')}
 					</span>
 					<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
 						— {instance.label}
 					</span>
 				</div>
 				<div className="flex items-center gap-2">
+					<select
+						value={lang}
+						onChange={(e) => setLang(e.target.value as Lang)}
+						title={t('settings.webUiLanguage')}
+						className="text-[10px] px-1.5 py-0.5 rounded border bg-transparent cursor-pointer"
+						style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+					>
+						<option value="zh-CN">简体中文</option>
+						<option value="en">English</option>
+					</select>
 					{hasChanges && (
 						<span
 							className="text-[10px] px-1.5 py-0.5 rounded"
@@ -198,7 +210,7 @@ export function SettingsPanel({ instance, onClose }: Props) {
 								color: 'var(--warning)',
 							}}
 						>
-							unsaved
+							{t('common.unsaved')}
 						</span>
 					)}
 					<button
@@ -231,7 +243,7 @@ export function SettingsPanel({ instance, onClose }: Props) {
 						<svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
 							{tab.icon}
 						</svg>
-						<span className="hidden sm:inline">{tab.label}</span>
+						<span className="hidden sm:inline">{t(tab.labelKey)}</span>
 					</button>
 				))}
 			</div>
@@ -276,7 +288,7 @@ export function SettingsPanel({ instance, onClose }: Props) {
 							className="px-3 py-1.5 rounded text-xs font-medium disabled:opacity-50 transition-colors"
 							style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 						>
-							{saving ? 'Saving...' : 'Save'}
+							{saving ? t('settings.saving') : t('settings.savePreferences')}
 						</button>
 						<button
 							type="button"
@@ -284,7 +296,7 @@ export function SettingsPanel({ instance, onClose }: Props) {
 							className="px-3 py-1.5 rounded text-xs border transition-colors hover:bg-[var(--bg-primary)]"
 							style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
 						>
-							Cancel
+							{t('common.cancel')}
 						</button>
 					</div>
 				</>

@@ -10,34 +10,37 @@ import {
 	formatDuration,
 	formatLimit,
 } from '../utils/format'
+import { useI18n } from '../i18n'
 
 type StateType = 'accent' | 'warning' | 'muted' | 'info' | 'error'
 
-function getStateInfo(state: TorrentState): { label: string; type: StateType; isDownloading: boolean } {
-	const map: Record<TorrentState, { label: string; type: StateType; isDownloading: boolean }> = {
-		downloading: { label: 'Downloading', type: 'accent', isDownloading: true },
-		uploading: { label: 'Seeding', type: 'warning', isDownloading: false },
-		pausedDL: { label: 'Stopped', type: 'muted', isDownloading: false },
-		pausedUP: { label: 'Stopped', type: 'muted', isDownloading: false },
-		stoppedDL: { label: 'Stopped', type: 'muted', isDownloading: false },
-		stoppedUP: { label: 'Stopped', type: 'muted', isDownloading: false },
-		stalledDL: { label: 'Stalled', type: 'warning', isDownloading: false },
-		stalledUP: { label: 'Seeding', type: 'warning', isDownloading: false },
-		queuedDL: { label: 'Queued', type: 'muted', isDownloading: false },
-		queuedUP: { label: 'Queued', type: 'muted', isDownloading: false },
-		checkingDL: { label: 'Checking', type: 'info', isDownloading: false },
-		checkingUP: { label: 'Checking', type: 'info', isDownloading: false },
-		checkingResumeData: { label: 'Checking', type: 'info', isDownloading: false },
-		forcedDL: { label: 'Forced', type: 'accent', isDownloading: true },
-		forcedUP: { label: 'Forced', type: 'warning', isDownloading: false },
-		metaDL: { label: 'Metadata', type: 'info', isDownloading: false },
-		allocating: { label: 'Allocating', type: 'info', isDownloading: false },
-		moving: { label: 'Moving', type: 'info', isDownloading: false },
-		error: { label: 'Error', type: 'error', isDownloading: false },
-		missingFiles: { label: 'Missing', type: 'error', isDownloading: false },
-		unknown: { label: 'Unknown', type: 'muted', isDownloading: false },
+function getStateInfo(state: TorrentState, t: (key: string) => string): { label: string; type: StateType; isDownloading: boolean } {
+	const typeMap: Record<TorrentState, { type: StateType; isDownloading: boolean }> = {
+		downloading: { type: 'accent', isDownloading: true },
+		uploading: { type: 'warning', isDownloading: false },
+		pausedDL: { type: 'muted', isDownloading: false },
+		pausedUP: { type: 'muted', isDownloading: false },
+		stoppedDL: { type: 'muted', isDownloading: false },
+		stoppedUP: { type: 'muted', isDownloading: false },
+		stalledDL: { type: 'warning', isDownloading: false },
+		stalledUP: { type: 'warning', isDownloading: false },
+		queuedDL: { type: 'muted', isDownloading: false },
+		queuedUP: { type: 'muted', isDownloading: false },
+		checkingDL: { type: 'info', isDownloading: false },
+		checkingUP: { type: 'info', isDownloading: false },
+		checkingResumeData: { type: 'info', isDownloading: false },
+		forcedDL: { type: 'accent', isDownloading: true },
+		forcedUP: { type: 'warning', isDownloading: false },
+		metaDL: { type: 'info', isDownloading: false },
+		allocating: { type: 'info', isDownloading: false },
+		moving: { type: 'info', isDownloading: false },
+		error: { type: 'error', isDownloading: false },
+		missingFiles: { type: 'error', isDownloading: false },
+		unknown: { type: 'muted', isDownloading: false },
 	}
-	return map[state] ?? { label: state, type: 'muted', isDownloading: false }
+	const meta = typeMap[state] ?? { type: 'muted' as StateType, isDownloading: false }
+	const label = t('status.' + state)
+	return { label, ...meta }
 }
 
 function getColor(type: StateType): string {
@@ -90,6 +93,7 @@ interface CellContext {
 	ratioColor: string
 	hideAddedTime: boolean
 	isCrossSeed: boolean
+	t: (key: string) => string
 }
 
 function renderCell(columnId: string, torrent: Torrent, ctx: CellContext): ReactNode {
@@ -104,7 +108,7 @@ function renderCell(columnId: string, torrent: Torrent, ctx: CellContext): React
 						<Check className="w-3 h-3" style={{ color: 'var(--accent)' }} strokeWidth={3} />
 					</div>
 					<span className="text-xs font-medium" style={{ color: 'var(--accent)' }}>
-						Complete
+						{ctx.t('status.completed')}
 					</span>
 				</div>
 			) : (
@@ -317,7 +321,8 @@ export function TorrentRow({
 	columnWidths,
 	hasCustomWidths,
 }: Props) {
-	const { label, type, isDownloading } = getStateInfo(torrent.state)
+	const { t } = useI18n()
+	const { label, type, isDownloading } = getStateInfo(torrent.state, t)
 	const progress = Math.round(torrent.progress * 100)
 	const isComplete = progress >= 100
 	const stateColor = getColor(type)
@@ -325,7 +330,7 @@ export function TorrentRow({
 	const ratioRounded = Math.round(torrent.ratio * 100) / 100
 	const ratioColor = isCrossSeed || ratioRounded >= ratioThreshold ? '#a6e3a1' : '#f38ba8'
 
-	const cellContext = { stateColor, stateLabel: label, isComplete, progress, ratioColor, hideAddedTime, isCrossSeed }
+	const cellContext = { stateColor, stateLabel: label, isComplete, progress, ratioColor, hideAddedTime, isCrossSeed, t }
 
 	return (
 		<tr
@@ -356,7 +361,7 @@ export function TorrentRow({
 					<span
 						className="truncate font-medium text-sm"
 						style={{ color: 'var(--text-secondary)' }}
-						title={`${torrent.name}\nLast active: ${formatRelativeTime(torrent.last_activity)}`}
+						title={`${torrent.name}\n${t('columns.last_activity')}: ${formatRelativeTime(torrent.last_activity)}`}
 					>
 						{torrent.name}
 					</span>

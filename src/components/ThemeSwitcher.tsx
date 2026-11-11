@@ -2,8 +2,10 @@ import { useState, useRef, useEffect } from 'react'
 import { ChevronDown, Settings, Check } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 import { ThemeManager } from './ThemeManager'
+import { useI18n } from '../i18n'
 
 export function ThemeSwitcher() {
+	const { t: tr } = useI18n()
 	const { theme, setTheme, themes, customThemes } = useTheme()
 	const [open, setOpen] = useState(false)
 	const [showManager, setShowManager] = useState(false)
@@ -43,7 +45,7 @@ export function ThemeSwitcher() {
 					>
 						{/* Official Themes */}
 						<div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider opacity-50 select-none text-[var(--text-muted)]">
-							Official
+							{tr('theme.official')}
 						</div>
 						{themes.map((t) => (
 							<ThemeRow
@@ -62,7 +64,7 @@ export function ThemeSwitcher() {
 							<>
 								<div className="my-1 border-t border-[var(--border)]" />
 								<div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider opacity-50 select-none text-[var(--text-muted)]">
-									Custom
+									{tr('theme.custom')}
 								</div>
 								{customThemes.map((t) => (
 									<ThemeRow
@@ -88,7 +90,7 @@ export function ThemeSwitcher() {
 							className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] transition-colors"
 						>
 							<Settings className="w-3 h-3" strokeWidth={2} />
-							Manage Themes
+							{tr('theme.manage')}
 						</button>
 					</div>
 				)}

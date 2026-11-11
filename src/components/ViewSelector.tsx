@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { Save, Trash2, Pencil, Check, X, Eye } from 'lucide-react'
 import type { CustomView, CustomViewsStorage } from '../types/views'
+import { useI18n } from '../i18n'
 
 interface ViewSelectorProps {
 	views: CustomViewsStorage
@@ -22,6 +23,7 @@ export function ViewSelector({
 	onRename,
 	onDelete,
 }: ViewSelectorProps) {
+	const { t } = useI18n()
 	const [open, setOpen] = useState(false)
 	const [saveAsMode, setSaveAsMode] = useState(false)
 	const [newName, setNewName] = useState('')
@@ -69,14 +71,14 @@ export function ViewSelector({
 		setEditName(view.name)
 	}
 
-	const displayName = activeView?.name ?? 'View'
+	const displayName = activeView?.name ?? t('customViews.title')
 
 	return (
 		<div className="relative flex items-center">
 			<button
 				ref={buttonRef}
 				onClick={handleToggle}
-				title={activeView?.name ?? 'Default View'}
+				title={activeView?.name ?? t('customViews.defaultView')}
 				className="flex items-center gap-1.5 px-2 py-1 rounded transition-all duration-150"
 				style={{
 					color: views.activeViewId ? 'var(--accent)' : 'var(--text-muted)',
@@ -95,7 +97,7 @@ export function ViewSelector({
 					onClick={onSave}
 					className="flex items-center justify-center w-6 h-6 rounded transition-all duration-150 hover:opacity-80"
 					style={{ color: 'var(--accent)' }}
-					title="Save view"
+					title={t('customViews.saveView')}
 				>
 					<Save className="w-3 h-3" strokeWidth={2} />
 				</button>
@@ -130,7 +132,7 @@ export function ViewSelector({
 										: 'transparent',
 								}}
 							>
-								Default View
+								{t('customViews.defaultView')}
 							</button>
 
 							{views.views.length > 0 && <div className="border-t" style={{ borderColor: 'var(--border)' }} />}
@@ -197,7 +199,7 @@ export function ViewSelector({
 												onClick={(e) => startEdit(view, e)}
 												className="p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
 												style={{ color: 'var(--text-muted)' }}
-												title="Rename"
+												title={t('torrents.rename')}
 											>
 												<Pencil className="w-3 h-3" strokeWidth={2} />
 											</button>
@@ -208,7 +210,7 @@ export function ViewSelector({
 												}}
 												className="p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
 												style={{ color: 'var(--error)' }}
-												title="Delete"
+												title={t('common.delete')}
 											>
 												<Trash2 className="w-3 h-3" strokeWidth={2} />
 											</button>
@@ -229,7 +231,7 @@ export function ViewSelector({
 											if (e.key === 'Enter') handleSaveAs()
 											if (e.key === 'Escape') setSaveAsMode(false)
 										}}
-										placeholder="View name..."
+										placeholder={t('customViews.viewName')}
 										className="flex-1 px-2 py-1 rounded text-xs border"
 										style={{
 											backgroundColor: 'var(--bg-secondary)',
@@ -261,7 +263,7 @@ export function ViewSelector({
 									style={{ color: 'var(--accent)' }}
 								>
 									<Save className="w-3 h-3" strokeWidth={2} />
-									Save current as...
+									{t('customViews.saveCurrentAs')}
 								</button>
 							)}
 						</div>

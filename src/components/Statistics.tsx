@@ -2,12 +2,14 @@ import { ArrowDown, ArrowUp, AlertCircle } from 'lucide-react'
 import { formatSize } from '../utils/format'
 import { Select } from './ui'
 import { useStats } from '../hooks/useStats'
+import { useI18n } from '../i18n'
 
 export function Statistics() {
+	const { t } = useI18n()
 	const { periodData, instances, selectedInstance, setSelectedInstance, isLoading, hasAnyData } = useStats()
 
 	const instanceOptions = [
-		{ value: 'all', label: 'All instances' },
+		{ value: 'all', label: t('common.allInstances') },
 		...instances.map((i) => ({ value: String(i.id), label: i.label })),
 	]
 
@@ -15,7 +17,7 @@ export function Statistics() {
 		<div className="space-y-6">
 			<div className="flex items-center justify-between">
 				<h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-					Transfer Statistics
+					{t('stats.transferStatistics')}
 				</h1>
 				{instances.length > 1 && (
 					<div className="w-48">
@@ -26,7 +28,7 @@ export function Statistics() {
 
 			{isLoading ? (
 				<div className="text-center py-12" style={{ color: 'var(--text-muted)' }}>
-					Loading statistics...
+					{t('stats.loading')}
 				</div>
 			) : (
 				<>
@@ -40,9 +42,9 @@ export function Statistics() {
 						>
 							<AlertCircle className="w-5 h-5 flex-shrink-0" />
 							<div>
-								<div className="font-medium">No data available yet</div>
+								<div className="font-medium">{t('stats.noData')}</div>
 								<div className="text-xs opacity-80 mt-0.5">
-									Statistics are recorded every 5 minutes. Data will appear once enough time has passed.
+									{t('stats.noDataDesc')}
 								</div>
 							</div>
 						</div>
@@ -66,7 +68,7 @@ export function Statistics() {
 												className="text-sm font-semibold tabular-nums"
 												style={{ color: data.hasData ? 'var(--accent)' : 'var(--text-muted)' }}
 											>
-												{data.hasData ? formatSize(data.downloaded) : 'N/A'}
+												{data.hasData ? formatSize(data.downloaded) : t('common.na')}
 											</span>
 										</div>
 										<div className="flex items-center gap-1.5">
@@ -75,7 +77,7 @@ export function Statistics() {
 												className="text-sm font-semibold tabular-nums"
 												style={{ color: data.hasData ? '#a6e3a1' : 'var(--text-muted)' }}
 											>
-												{data.hasData ? formatSize(data.uploaded) : 'N/A'}
+												{data.hasData ? formatSize(data.uploaded) : t('common.na')}
 											</span>
 										</div>
 									</div>
@@ -85,10 +87,10 @@ export function Statistics() {
 					</div>
 
 					<ul className="text-xs space-y-1 list-disc list-inside" style={{ color: 'var(--text-muted)' }}>
-						<li>Statistics are recorded every 5 minutes while the server is running</li>
-						<li>All time values are fetched directly from qBittorrent</li>
-						<li>Other periods show the difference between current and historical snapshots</li>
-						<li>Download stats include protocol traffic (DHT, PEX, tracker responses), not just file data</li>
+						<li>{t('stats.note1')}</li>
+						<li>{t('stats.note2')}</li>
+						<li>{t('stats.note3')}</li>
+						<li>{t('stats.note4')}</li>
 					</ul>
 				</>
 			)}

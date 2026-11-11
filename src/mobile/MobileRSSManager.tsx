@@ -4,6 +4,7 @@ import { type Instance } from '../api/instances'
 import { useRSSManager } from '../hooks/useRSSManager'
 import type { RSSArticle } from '../types/rss'
 import { Checkbox, Select } from '../components/ui'
+import { useI18n } from '../i18n'
 
 type Tab = 'feeds' | 'rules'
 type View = 'list' | 'articles' | 'editor'
@@ -16,6 +17,7 @@ interface MobileArticleDownloadProps {
 }
 
 function MobileArticleDownload({ article, idx, instances, rss }: MobileArticleDownloadProps) {
+	const { t } = useI18n()
 	const articleId = article.id || String(idx)
 	const isGrabbing = rss.grabbing === articleId
 	const grabResult = rss.grabResult?.id === articleId ? rss.grabResult : null
@@ -31,7 +33,7 @@ function MobileArticleDownload({ article, idx, instances, rss }: MobileArticleDo
 					color: grabResult.success ? '#a6e3a1' : 'var(--error)',
 				}}
 			>
-				{grabResult.success ? 'Added!' : 'Failed'}
+				{grabResult.success ? t('rss.added') : t('common.failed')}
 			</span>
 		)
 	}
@@ -44,7 +46,7 @@ function MobileArticleDownload({ article, idx, instances, rss }: MobileArticleDo
 				className="px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-50"
 				style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 			>
-				{isGrabbing ? 'Adding...' : 'Download'}
+				{isGrabbing ? t('common.adding') : t('common.download')}
 			</button>
 		)
 	}
@@ -59,7 +61,7 @@ function MobileArticleDownload({ article, idx, instances, rss }: MobileArticleDo
 				className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-50"
 				style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 			>
-				{isGrabbing ? 'Adding...' : 'Download'}
+				{isGrabbing ? t('common.adding') : t('common.download')}
 				<ChevronDown className="w-3 h-3" strokeWidth={2.5} />
 			</button>
 			{isOpen && (
@@ -92,6 +94,7 @@ interface Props {
 }
 
 export function MobileRSSManager({ instances, onBack }: Props) {
+	const { t } = useI18n()
 	const [tab, setTab] = useState<Tab>('feeds')
 	const [view, setView] = useState<View>('list')
 	const [instanceSelector, setInstanceSelector] = useState(false)
@@ -125,7 +128,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 						? rss.selectedFeed.name
 						: view === 'editor' && rss.selectedRule
 							? rss.selectedRule
-							: 'RSS Manager'}
+							: t('rss.manager')}
 				</h1>
 				{instances.length > 1 && view === 'list' && (
 					<button
@@ -143,18 +146,18 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 					className="flex items-center gap-1 p-2 mx-4 mt-3 rounded-lg"
 					style={{ backgroundColor: 'var(--bg-secondary)' }}
 				>
-					{(['feeds', 'rules'] as Tab[]).map((t) => (
+					{(['feeds', 'rules'] as Tab[]).map((tabKey) => (
 						<button
-							key={t}
-							onClick={() => setTab(t)}
+							key={tabKey}
+							onClick={() => setTab(tabKey)}
 							className="flex-1 py-2 rounded-md text-sm font-medium capitalize transition-all"
 							style={{
-								backgroundColor: tab === t ? 'var(--bg-primary)' : 'transparent',
-								color: tab === t ? 'var(--text-primary)' : 'var(--text-muted)',
-								boxShadow: tab === t ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
+								backgroundColor: tab === tabKey ? 'var(--bg-primary)' : 'transparent',
+								color: tab === tabKey ? 'var(--text-primary)' : 'var(--text-muted)',
+								boxShadow: tab === tabKey ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
 							}}
 						>
-							{t}
+							{tabKey === 'feeds' ? t('rss.feeds') : t('rss.rules')}
 						</button>
 					))}
 				</div>
@@ -175,7 +178,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 			<div className="flex-1 overflow-y-auto p-4">
 				{rss.loading ? (
 					<div className="text-center py-12" style={{ color: 'var(--text-muted)' }}>
-						Loading...
+						{t('common.loading')}
 					</div>
 				) : view === 'list' && tab === 'feeds' ? (
 					<div className="space-y-3">
@@ -185,14 +188,14 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 								className="flex-1 py-2.5 rounded-xl text-sm font-medium"
 								style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 							>
-								Add Feed
+								{t('rss.addFeed')}
 							</button>
 							<button
 								onClick={() => rss.setShowAddFolder(true)}
 								className="py-2.5 px-4 rounded-xl text-sm border"
 								style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 							>
-								Folder
+								{t('rss.addFolder')}
 							</button>
 						</div>
 
@@ -212,14 +215,14 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 											borderColor: 'var(--border)',
 											color: 'var(--text-primary)',
 										}}
-										placeholder="Feed URL"
+										placeholder={t('rss.feedUrl')}
 										required
 									/>
 									<Select
 										value={rss.feedPath}
 										onChange={rss.setFeedPath}
 										options={[
-											{ value: '', label: 'None' },
+											{ value: '', label: t('common.none') },
 											...rss.feeds.filter((f) => f.isFolder).map((f) => ({ value: f.path, label: f.path })),
 										]}
 										minWidth="100%"
@@ -232,7 +235,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 											className="flex-1 py-2.5 rounded-xl text-sm font-medium disabled:opacity-50"
 											style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 										>
-											{rss.submitting ? 'Adding...' : 'Add'}
+											{rss.submitting ? t('common.adding') : t('common.add')}
 										</button>
 										<button
 											type="button"
@@ -240,7 +243,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 											className="py-2.5 px-4 rounded-xl text-sm border"
 											style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 										>
-											Cancel
+											{t('common.cancel')}
 										</button>
 									</div>
 								</form>
@@ -263,7 +266,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 											borderColor: 'var(--border)',
 											color: 'var(--text-primary)',
 										}}
-										placeholder="Folder name"
+										placeholder={t('rss.folderName')}
 										required
 									/>
 									<div className="flex gap-2">
@@ -273,7 +276,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 											className="flex-1 py-2.5 rounded-xl text-sm font-medium disabled:opacity-50"
 											style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 										>
-											{rss.submitting ? 'Creating...' : 'Create'}
+											{rss.submitting ? t('common.creating') : t('common.create')}
 										</button>
 										<button
 											type="button"
@@ -281,7 +284,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 											className="py-2.5 px-4 rounded-xl text-sm border"
 											style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 										>
-											Cancel
+											{t('common.cancel')}
 										</button>
 									</div>
 								</form>
@@ -294,7 +297,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 						>
 							{rss.visibleFeeds.length === 0 ? (
 								<div className="px-4 py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-									No feeds
+									{t('rss.noFeeds')}
 								</div>
 							) : (
 								rss.visibleFeeds.map((feed) => (
@@ -400,15 +403,15 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 							))
 						) : rss.selectedFeed.data?.isLoading ? (
 							<div className="px-4 py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-								Loading feed...
+								{t('rss.loadingFeed')}
 							</div>
 						) : rss.selectedFeed.data?.hasError ? (
 							<div className="px-4 py-8 text-center text-sm" style={{ color: 'var(--error)' }}>
-								Failed to load feed
+								{t('rss.failedToLoadFeed')}
 							</div>
 						) : (
 							<div className="px-4 py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-								No articles - try refreshing
+								{t('rss.noArticlesRefresh')}
 							</div>
 						)}
 					</div>
@@ -419,7 +422,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 							className="w-full py-2.5 rounded-xl text-sm font-medium"
 							style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 						>
-							New Rule
+							{t('rss.newRule')}
 						</button>
 
 						{rss.showNewRule && (
@@ -438,7 +441,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 											borderColor: 'var(--border)',
 											color: 'var(--text-primary)',
 										}}
-										placeholder="Rule name"
+										placeholder={t('rss.ruleName')}
 										required
 									/>
 									<div className="flex gap-2">
@@ -448,7 +451,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 											className="flex-1 py-2.5 rounded-xl text-sm font-medium disabled:opacity-50"
 											style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 										>
-											{rss.submitting ? 'Creating...' : 'Create'}
+											{rss.submitting ? t('common.creating') : t('common.create')}
 										</button>
 										<button
 											type="button"
@@ -456,7 +459,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 											className="py-2.5 px-4 rounded-xl text-sm border"
 											style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 										>
-											Cancel
+											{t('common.cancel')}
 										</button>
 									</div>
 								</form>
@@ -469,7 +472,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 						>
 							{Object.keys(rss.rules).length === 0 ? (
 								<div className="px-4 py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-									No rules
+									{t('rss.noRules')}
 								</div>
 							) : (
 								Object.entries(rss.rules).map(([name, rule]) => (
@@ -507,7 +510,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 				) : view === 'editor' && rss.selectedRule && rss.editingRule ? (
 					<div className="space-y-4">
 						<Checkbox
-							label="Enabled"
+							label={t('common.enabled')}
 							checked={rss.editingRule.enabled}
 							onChange={(v) => rss.setEditingRule({ ...rss.editingRule!, enabled: v })}
 						/>
@@ -517,7 +520,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 								className="block text-xs font-medium mb-1.5 uppercase tracking-wider"
 								style={{ color: 'var(--text-muted)' }}
 							>
-								Must Contain
+								{t('rss.mustContain')}
 							</label>
 							<input
 								type="text"
@@ -538,7 +541,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 								className="block text-xs font-medium mb-1.5 uppercase tracking-wider"
 								style={{ color: 'var(--text-muted)' }}
 							>
-								Must NOT Contain
+								{t('rss.mustNotContain')}
 							</label>
 							<input
 								type="text"
@@ -556,12 +559,12 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 
 						<div className="flex gap-4">
 							<Checkbox
-								label="Use Regex"
+								label={t('rss.useRegex')}
 								checked={rss.editingRule.useRegex}
 								onChange={(v) => rss.setEditingRule({ ...rss.editingRule!, useRegex: v })}
 							/>
 							<Checkbox
-								label="Smart Filter"
+								label={t('rss.smartFilter')}
 								checked={rss.editingRule.smartFilter}
 								onChange={(v) => rss.setEditingRule({ ...rss.editingRule!, smartFilter: v })}
 							/>
@@ -572,7 +575,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 								className="block text-xs font-medium mb-1.5 uppercase tracking-wider"
 								style={{ color: 'var(--text-muted)' }}
 							>
-								Episode Filter
+								{t('rss.episodeFilter')}
 							</label>
 							<input
 								type="text"
@@ -593,7 +596,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 								className="block text-xs font-medium mb-1.5 uppercase tracking-wider"
 								style={{ color: 'var(--text-muted)' }}
 							>
-								Category
+								{t('common.category')}
 							</label>
 							<select
 								value={rss.editingRule.assignedCategory}
@@ -605,7 +608,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 									color: 'var(--text-primary)',
 								}}
 							>
-								<option value="">None</option>
+								<option value="">{t('common.none')}</option>
 								{Object.keys(rss.categories).map((cat) => (
 									<option key={cat} value={cat}>
 										{cat}
@@ -619,7 +622,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 								className="block text-xs font-medium mb-1.5 uppercase tracking-wider"
 								style={{ color: 'var(--text-muted)' }}
 							>
-								Save Path
+								{t('rss.saveToPath')}
 							</label>
 							<input
 								type="text"
@@ -640,7 +643,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 								className="block text-xs font-medium mb-2 uppercase tracking-wider"
 								style={{ color: 'var(--text-muted)' }}
 							>
-								Apply to Feeds
+								{t('rss.applyToFeeds')}
 							</label>
 							<div
 								className="max-h-40 overflow-y-auto rounded-xl border p-3 space-y-2"
@@ -648,7 +651,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 							>
 								{rss.feedUrls.length === 0 ? (
 									<div className="text-sm py-2 text-center" style={{ color: 'var(--text-muted)' }}>
-										No feeds
+										{t('rss.noFeeds')}
 									</div>
 								) : (
 									rss.feedUrls.map((url) => (
@@ -678,14 +681,14 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 									color: rss.ruleSaved ? '#1e1e2e' : 'var(--accent-contrast)',
 								}}
 							>
-								{rss.savingRule ? 'Saving...' : rss.ruleSaved ? 'Saved!' : 'Save'}
+								{rss.savingRule ? t('common.saving') : rss.ruleSaved ? t('common.saved') : t('common.save')}
 							</button>
 							<button
 								onClick={rss.handleCancelEdit}
 								className="py-3 px-4 rounded-xl text-sm border"
 								style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 							>
-								Cancel
+								{t('common.cancel')}
 							</button>
 							<button
 								onClick={rss.handlePreviewMatches}
@@ -693,7 +696,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 								className="py-3 px-4 rounded-xl text-sm border disabled:opacity-50"
 								style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 							>
-								{rss.loadingMatches ? '...' : 'Preview'}
+								{rss.loadingMatches ? '...' : t('rss.previewMatches')}
 							</button>
 						</div>
 
@@ -703,7 +706,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 									className="text-xs font-semibold uppercase tracking-wider mb-2"
 									style={{ color: 'var(--text-muted)' }}
 								>
-									Matching Articles
+									{t('rss.matchingArticles')}
 								</div>
 								<div
 									className="max-h-48 overflow-y-auto rounded-xl border p-3"
@@ -711,7 +714,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 								>
 									{Object.keys(rss.matchingArticles).length === 0 ? (
 										<div className="text-sm py-2 text-center" style={{ color: 'var(--text-muted)' }}>
-											No matches
+											{t('rss.noMatches')}
 										</div>
 									) : (
 										Object.entries(rss.matchingArticles).map(([feedName, matchedTitles]) => (
@@ -741,10 +744,11 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 						style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 					>
 						<h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-							Delete {rss.deleteConfirm.isFolder ? 'Folder' : 'Feed'}
+							{t('common.delete')} {rss.deleteConfirm.isFolder ? t('rss.folderLabel') : t('rss.feedLabel')}
 						</h3>
 						<p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
-							Delete <strong style={{ color: 'var(--text-primary)' }}>{rss.deleteConfirm.name}</strong>?
+							{t('rss.deleteFeedConfirm', { name: rss.deleteConfirm.name })}
+							{rss.deleteConfirm.isFolder && ` ${t('rss.deleteFolderConfirm')}`}
 						</p>
 						<div className="flex gap-3">
 							<button
@@ -752,14 +756,14 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 								className="flex-1 py-3 rounded-xl text-sm border"
 								style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 							>
-								Cancel
+								{t('common.cancel')}
 							</button>
 							<button
 								onClick={rss.handleDeleteItem}
 								className="flex-1 py-3 rounded-xl text-sm font-medium"
 								style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 							>
-								Delete
+								{t('common.delete')}
 							</button>
 						</div>
 					</div>
@@ -773,10 +777,10 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 						style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 					>
 						<h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-							Delete Rule
+							{t('rss.deleteRule')}
 						</h3>
 						<p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
-							Delete <strong style={{ color: 'var(--text-primary)' }}>{rss.ruleDeleteConfirm}</strong>?
+							{t('rss.deleteRuleConfirm', { name: rss.ruleDeleteConfirm })}
 						</p>
 						<div className="flex gap-3">
 							<button
@@ -784,14 +788,14 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 								className="flex-1 py-3 rounded-xl text-sm border"
 								style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 							>
-								Cancel
+								{t('common.cancel')}
 							</button>
 							<button
 								onClick={rss.handleDeleteRule}
 								className="flex-1 py-3 rounded-xl text-sm font-medium"
 								style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 							>
-								Delete
+								{t('common.delete')}
 							</button>
 						</div>
 					</div>
@@ -813,7 +817,7 @@ export function MobileRSSManager({ instances, onBack }: Props) {
 							className="px-4 py-3 border-b text-sm font-semibold"
 							style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 						>
-							Select Instance
+							{t('instances.selectInstance')}
 						</div>
 						{instances.map((inst) => (
 							<button

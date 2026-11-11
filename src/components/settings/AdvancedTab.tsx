@@ -1,6 +1,7 @@
 import { AlertTriangle } from 'lucide-react'
 import type { QBittorrentPreferences } from '../../types/preferences'
 import { Toggle, Select } from '../ui'
+import { useI18n } from '../../i18n'
 
 interface Props {
 	preferences: Partial<QBittorrentPreferences>
@@ -8,43 +9,46 @@ interface Props {
 }
 
 const RESUME_DATA_STORAGE_TYPES = [
-	{ value: 'Legacy', label: 'Fastresume files' },
-	{ value: 'SQLite', label: 'SQLite database' },
+	{ value: 'Legacy', label: 'settings.adv.fastresumeFiles' },
+	{ value: 'SQLite', label: 'settings.adv.sqliteDatabase' },
 ]
 
 const TORRENT_CONTENT_REMOVE_OPTIONS = [
-	{ value: 'Delete', label: 'Delete permanently' },
-	{ value: 'MoveToTrash', label: 'Move to trash' },
+	{ value: 'Delete', label: 'settings.adv.deletePermanently' },
+	{ value: 'MoveToTrash', label: 'settings.adv.moveToTrash' },
 ]
 
 const DISK_IO_TYPES = [
-	{ value: 0, label: 'Default' },
-	{ value: 1, label: 'Memory mapped' },
-	{ value: 2, label: 'POSIX-compliant' },
+	{ value: 0, label: 'settings.adv.diskIoDefault' },
+	{ value: 1, label: 'settings.adv.memoryMapped' },
+	{ value: 2, label: 'settings.adv.posixCompliant' },
 ]
 
 const DISK_IO_MODES = [
-	{ value: 0, label: 'Disable OS cache' },
-	{ value: 1, label: 'Enable OS cache' },
+	{ value: 0, label: 'settings.adv.disableOsCache' },
+	{ value: 1, label: 'settings.adv.enableOsCache' },
 ]
 
 const UTP_TCP_MIXED_MODES = [
-	{ value: 0, label: 'Prefer TCP' },
-	{ value: 1, label: 'Peer proportional' },
+	{ value: 0, label: 'settings.adv.preferTcp' },
+	{ value: 1, label: 'settings.adv.peerProportional' },
 ]
 
 const UPLOAD_SLOTS_BEHAVIORS = [
-	{ value: 0, label: 'Fixed slots' },
-	{ value: 1, label: 'Upload rate based' },
+	{ value: 0, label: 'settings.adv.fixedSlots' },
+	{ value: 1, label: 'settings.adv.uploadRateBased' },
 ]
 
 const UPLOAD_CHOKING_ALGORITHMS = [
-	{ value: 0, label: 'Round robin' },
-	{ value: 1, label: 'Fastest upload' },
-	{ value: 2, label: 'Anti-leech' },
+	{ value: 0, label: 'settings.adv.roundRobin' },
+	{ value: 1, label: 'settings.adv.fastestUpload' },
+	{ value: 2, label: 'settings.adv.antiLeech' },
 ]
 
 export function AdvancedTab({ preferences, onChange }: Props) {
+	const { t } = useI18n()
+	const tr = <T extends string | number>(opts: { value: T; label: string }[]) =>
+		opts.map((o) => ({ ...o, label: t(o.label) }))
 	return (
 		<div className="space-y-4">
 			<div
@@ -56,7 +60,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 			>
 				<AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--warning)' }} strokeWidth={1.5} />
 				<p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-					Incorrect values may affect performance or stability.
+					{t('settings.advancedWarning')}
 				</p>
 			</div>
 
@@ -68,29 +72,29 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 					<div className="grid grid-cols-2 gap-2">
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Resume data storage
+								{t('settings.adv.resumeDataStorage')}
 							</label>
 							<Select
 								value={preferences.resume_data_storage_type ?? 'SQLite'}
 								onChange={(v) => onChange({ resume_data_storage_type: v })}
-								options={RESUME_DATA_STORAGE_TYPES}
+								options={tr(RESUME_DATA_STORAGE_TYPES)}
 							/>
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Content removing mode
+								{t('settings.adv.contentRemoveMode')}
 							</label>
 							<Select
 								value={preferences.torrent_content_remove_option ?? 'Delete'}
 								onChange={(v) => onChange({ torrent_content_remove_option: v })}
-								options={TORRENT_CONTENT_REMOVE_OPTIONS}
+								options={tr(TORRENT_CONTENT_REMOVE_OPTIONS)}
 							/>
 						</div>
 					</div>
 					<div className="grid grid-cols-3 gap-2">
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Memory limit (MiB)
+								{t('settings.adv.memoryLimit')}
 							</label>
 							<input
 								type="number"
@@ -106,13 +110,13 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Network interface
+								{t('settings.adv.networkInterface')}
 							</label>
 							<input
 								type="text"
 								value={preferences.current_network_interface ?? ''}
 								onChange={(e) => onChange({ current_network_interface: e.target.value })}
-								placeholder="Any"
+								placeholder={t('common.any')}
 								className="w-full px-2 py-1.5 rounded border text-xs"
 								style={{
 									backgroundColor: 'var(--bg-tertiary)',
@@ -123,13 +127,13 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								IP to bind
+								{t('settings.adv.ipToBind')}
 							</label>
 							<input
 								type="text"
 								value={preferences.current_interface_address ?? ''}
 								onChange={(e) => onChange({ current_interface_address: e.target.value })}
-								placeholder="All"
+								placeholder={t('common.all')}
 								className="w-full px-2 py-1.5 rounded border text-xs"
 								style={{
 									backgroundColor: 'var(--bg-tertiary)',
@@ -142,7 +146,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 					<div className="grid grid-cols-4 gap-2">
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Resume interval (min)
+								{t('settings.adv.resumeInterval')}
 							</label>
 							<input
 								type="number"
@@ -158,7 +162,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Stats interval (min)
+								{t('settings.adv.statsInterval')}
 							</label>
 							<input
 								type="number"
@@ -174,7 +178,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								.torrent size (MiB)
+								{t('settings.adv.torrentSize')}
 							</label>
 							<input
 								type="number"
@@ -190,7 +194,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Refresh (ms)
+								{t('settings.adv.refreshMs')}
 							</label>
 							<input
 								type="number"
@@ -207,7 +211,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 					</div>
 					<div>
 						<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-							Instance name
+							{t('settings.adv.instanceName')}
 						</label>
 						<input
 							type="text"
@@ -225,7 +229,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 					<div className="grid grid-cols-2 gap-x-4 gap-y-1">
 						<div className="flex items-center justify-between">
 							<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-								Confirm recheck
+								{t('settings.adv.confirmRecheck')}
 							</span>
 							<Toggle
 								checked={preferences.confirm_torrent_recheck ?? true}
@@ -234,7 +238,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div className="flex items-center justify-between">
 							<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-								Recheck on completion
+								{t('settings.adv.recheckOnCompletion')}
 							</span>
 							<Toggle
 								checked={preferences.recheck_completed_torrents ?? false}
@@ -243,7 +247,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div className="flex items-center justify-between">
 							<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-								Resolve peer countries
+								{t('settings.adv.resolvePeerCountries')}
 							</span>
 							<Toggle
 								checked={preferences.resolve_peer_countries ?? true}
@@ -252,7 +256,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div className="flex items-center justify-between">
 							<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-								Reannounce on IP change
+								{t('settings.adv.reannounceIpChange')}
 							</span>
 							<Toggle
 								checked={preferences.reannounce_when_address_changed ?? false}
@@ -263,7 +267,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 					<div className="p-2 rounded space-y-2" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
 						<div className="flex items-center justify-between">
 							<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-								Embedded tracker
+								{t('settings.adv.embeddedTracker')}
 							</span>
 							<Toggle
 								checked={preferences.enable_embedded_tracker ?? false}
@@ -274,7 +278,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 							<div className="flex items-center gap-4 pl-4">
 								<div className="flex items-center gap-2">
 									<label className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-										Port
+										{t('settings.port')}
 									</label>
 									<input
 										type="number"
@@ -290,7 +294,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 								</div>
 								<div className="flex items-center justify-between flex-1">
 									<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-										Port forwarding
+										{t('settings.adv.portForwarding')}
 									</span>
 									<Toggle
 										checked={preferences.embedded_tracker_port_forwarding ?? false}
@@ -302,7 +306,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 					</div>
 					<div className="flex items-center justify-between">
 						<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-							Ignore SSL errors
+							{t('settings.adv.ignoreSslErrors')}
 						</span>
 						<Toggle
 							checked={preferences.ignore_ssl_errors ?? false}
@@ -311,13 +315,13 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 					</div>
 					<div>
 						<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-							Python executable path
+							{t('settings.adv.pythonPath')}
 						</label>
 						<input
 							type="text"
 							value={preferences.python_executable_path ?? ''}
 							onChange={(e) => onChange({ python_executable_path: e.target.value })}
-							placeholder="Auto detect"
+							placeholder={t('settings.adv.autoDetect')}
 							className="w-full px-2 py-1.5 rounded border text-xs"
 							style={{
 								backgroundColor: 'var(--bg-tertiary)',
@@ -339,7 +343,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 					<div className="grid grid-cols-4 gap-2">
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Bdecode depth
+								{t('settings.adv.bdecodeDepth')}
 							</label>
 							<input
 								type="number"
@@ -355,7 +359,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Bdecode tokens
+								{t('settings.adv.bdecodeTokens')}
 							</label>
 							<input
 								type="number"
@@ -371,7 +375,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Async I/O threads
+								{t('settings.adv.asyncIoThreads')}
 							</label>
 							<input
 								type="number"
@@ -387,7 +391,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Hashing threads
+								{t('settings.adv.hashingThreads')}
 							</label>
 							<input
 								type="number"
@@ -405,7 +409,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 					<div className="grid grid-cols-4 gap-2">
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								File pool size
+								{t('settings.adv.filePoolSize')}
 							</label>
 							<input
 								type="number"
@@ -421,7 +425,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Check mem (MiB)
+								{t('settings.adv.checkMem')}
 							</label>
 							<input
 								type="number"
@@ -437,7 +441,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Disk queue (KiB)
+								{t('settings.adv.diskQueue')}
 							</label>
 							<input
 								type="number"
@@ -453,41 +457,41 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Disk IO type
+								{t('settings.adv.diskIoType')}
 							</label>
 							<Select
 								value={preferences.disk_io_type ?? 0}
 								onChange={(v) => onChange({ disk_io_type: v })}
-								options={DISK_IO_TYPES}
+								options={tr(DISK_IO_TYPES)}
 							/>
 						</div>
 					</div>
 					<div className="grid grid-cols-2 gap-2">
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Disk IO read mode
+								{t('settings.adv.diskIoReadMode')}
 							</label>
 							<Select
 								value={preferences.disk_io_read_mode ?? 0}
 								onChange={(v) => onChange({ disk_io_read_mode: v })}
-								options={DISK_IO_MODES}
+								options={tr(DISK_IO_MODES)}
 							/>
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Disk IO write mode
+								{t('settings.adv.diskIoWriteMode')}
 							</label>
 							<Select
 								value={preferences.disk_io_write_mode ?? 0}
 								onChange={(v) => onChange({ disk_io_write_mode: v })}
-								options={DISK_IO_MODES}
+								options={tr(DISK_IO_MODES)}
 							/>
 						</div>
 					</div>
 					<div className="grid grid-cols-2 gap-x-4 gap-y-1">
 						<div className="flex items-center justify-between">
 							<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-								Piece extent affinity
+								{t('settings.adv.pieceExtentAffinity')}
 							</span>
 							<Toggle
 								checked={preferences.enable_piece_extent_affinity ?? false}
@@ -496,7 +500,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div className="flex items-center justify-between">
 							<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-								Upload piece suggestions
+								{t('settings.adv.uploadPieceSuggestions')}
 							</span>
 							<Toggle
 								checked={preferences.enable_upload_suggestions ?? false}
@@ -507,7 +511,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 					<div className="grid grid-cols-3 gap-2">
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Send buffer (KiB)
+								{t('settings.adv.sendBuffer')}
 							</label>
 							<input
 								type="number"
@@ -523,7 +527,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Low watermark (KiB)
+								{t('settings.adv.lowWatermark')}
 							</label>
 							<input
 								type="number"
@@ -539,7 +543,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Watermark factor (%)
+								{t('settings.adv.watermarkFactor')}
 							</label>
 							<input
 								type="number"
@@ -557,7 +561,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 					<div className="grid grid-cols-3 gap-2">
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Connections/sec
+								{t('settings.adv.connectionsPerSec')}
 							</label>
 							<input
 								type="number"
@@ -573,7 +577,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Send buffer (KiB)
+								{t('settings.adv.sendBuffer')}
 							</label>
 							<input
 								type="number"
@@ -589,7 +593,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Recv buffer (KiB)
+								{t('settings.adv.recvBuffer')}
 							</label>
 							<input
 								type="number"
@@ -607,7 +611,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 					<div className="grid grid-cols-4 gap-2">
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Socket backlog
+								{t('settings.adv.socketBacklog')}
 							</label>
 							<input
 								type="number"
@@ -623,7 +627,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								UPnP lease
+								{t('settings.adv.upnpLease')}
 							</label>
 							<input
 								type="number"
@@ -639,7 +643,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Out ports min
+								{t('settings.adv.outPortsMin')}
 							</label>
 							<input
 								type="number"
@@ -655,7 +659,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Out ports max
+								{t('settings.adv.outPortsMax')}
 							</label>
 							<input
 								type="number"
@@ -673,7 +677,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 					<div className="grid grid-cols-2 gap-2">
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Peer ToS
+								{t('settings.adv.peerTos')}
 							</label>
 							<input
 								type="number"
@@ -689,19 +693,19 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								µTP-TCP mixed mode
+								{t('settings.adv.utpTcpMixedMode')}
 							</label>
 							<Select
 								value={preferences.utp_tcp_mixed_mode ?? 0}
 								onChange={(v) => onChange({ utp_tcp_mixed_mode: v })}
-								options={UTP_TCP_MIXED_MODES}
+								options={tr(UTP_TCP_MIXED_MODES)}
 							/>
 						</div>
 					</div>
 					<div className="grid grid-cols-2 gap-x-4 gap-y-1">
 						<div className="flex items-center justify-between">
 							<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-								IDN support
+								{t('settings.adv.idnSupport')}
 							</span>
 							<Toggle
 								checked={preferences.idn_support_enabled ?? false}
@@ -710,7 +714,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div className="flex items-center justify-between">
 							<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-								Multi connections same IP
+								{t('settings.adv.multiConnSameIp')}
 							</span>
 							<Toggle
 								checked={preferences.enable_multi_connections_from_same_ip ?? false}
@@ -719,7 +723,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div className="flex items-center justify-between">
 							<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-								Validate HTTPS tracker cert
+								{t('settings.adv.validateHttpsCert')}
 							</span>
 							<Toggle
 								checked={preferences.validate_https_tracker_certificate ?? true}
@@ -728,7 +732,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div className="flex items-center justify-between">
 							<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-								SSRF mitigation
+								{t('settings.adv.ssrfMitigation')}
 							</span>
 							<Toggle
 								checked={preferences.ssrf_mitigation ?? true}
@@ -737,7 +741,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div className="flex items-center justify-between">
 							<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-								Block privileged ports
+								{t('settings.adv.blockPrivilegedPorts')}
 							</span>
 							<Toggle
 								checked={preferences.block_peers_on_privileged_ports ?? false}
@@ -748,29 +752,29 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 					<div className="grid grid-cols-2 gap-2">
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Upload slots behavior
+								{t('settings.adv.uploadSlotsBehavior')}
 							</label>
 							<Select
 								value={preferences.upload_slots_behavior ?? 0}
 								onChange={(v) => onChange({ upload_slots_behavior: v })}
-								options={UPLOAD_SLOTS_BEHAVIORS}
+								options={tr(UPLOAD_SLOTS_BEHAVIORS)}
 							/>
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Upload choking algorithm
+								{t('settings.adv.uploadChokingAlgorithm')}
 							</label>
 							<Select
 								value={preferences.upload_choking_algorithm ?? 1}
 								onChange={(v) => onChange({ upload_choking_algorithm: v })}
-								options={UPLOAD_CHOKING_ALGORITHMS}
+								options={tr(UPLOAD_CHOKING_ALGORITHMS)}
 							/>
 						</div>
 					</div>
 					<div className="grid grid-cols-2 gap-x-4 gap-y-1">
 						<div className="flex items-center justify-between">
 							<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-								Announce to all trackers in tier
+								{t('settings.adv.announceAllTrackersTier')}
 							</span>
 							<Toggle
 								checked={preferences.announce_to_all_tiers ?? true}
@@ -779,7 +783,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div className="flex items-center justify-between">
 							<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-								Announce to all tiers
+								{t('settings.adv.announceAllTiers')}
 							</span>
 							<Toggle
 								checked={preferences.announce_to_all_trackers ?? false}
@@ -790,13 +794,13 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 					<div className="grid grid-cols-2 gap-2">
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Announce IP
+								{t('settings.adv.announceIp')}
 							</label>
 							<input
 								type="text"
 								value={preferences.announce_ip ?? ''}
 								onChange={(e) => onChange({ announce_ip: e.target.value })}
-								placeholder="(restart req)"
+								placeholder={t('settings.adv.restartRequired')}
 								className="w-full px-2 py-1.5 rounded border text-xs"
 								style={{
 									backgroundColor: 'var(--bg-tertiary)',
@@ -807,7 +811,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Announce port (0=listen)
+								{t('settings.adv.announcePort')}
 							</label>
 							<input
 								type="number"
@@ -825,7 +829,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 					<div className="grid grid-cols-3 gap-2">
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Max HTTP announces
+								{t('settings.adv.maxHttpAnnounces')}
 							</label>
 							<input
 								type="number"
@@ -841,7 +845,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Stop tracker timeout
+								{t('settings.adv.stopTrackerTimeout')}
 							</label>
 							<input
 								type="number"
@@ -857,7 +861,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Request queue
+								{t('settings.adv.requestQueue')}
 							</label>
 							<input
 								type="number"
@@ -875,7 +879,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 					<div className="grid grid-cols-3 gap-2">
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Peer turnover (%)
+								{t('settings.adv.peerTurnover')}
 							</label>
 							<input
 								type="number"
@@ -891,7 +895,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Turnover cutoff (%)
+								{t('settings.adv.turnoverCutoff')}
 							</label>
 							<input
 								type="number"
@@ -907,7 +911,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 						</div>
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Turnover interval (s)
+								{t('settings.adv.turnoverInterval')}
 							</label>
 							<input
 								type="number"
@@ -924,7 +928,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 					</div>
 					<div>
 						<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-							DHT bootstrap nodes
+							{t('settings.adv.dhtBootstrapNodes')}
 						</label>
 						<input
 							type="text"
@@ -953,7 +957,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 				<div className="grid grid-cols-4 gap-2">
 					<div>
 						<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-							Inbound qty
+							{t('settings.adv.i2pInboundQty')}
 						</label>
 						<input
 							type="number"
@@ -969,7 +973,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 					</div>
 					<div>
 						<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-							Outbound qty
+							{t('settings.adv.i2pOutboundQty')}
 						</label>
 						<input
 							type="number"
@@ -985,7 +989,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 					</div>
 					<div>
 						<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-							Inbound len
+							{t('settings.adv.i2pInboundLen')}
 						</label>
 						<input
 							type="number"
@@ -1001,7 +1005,7 @@ export function AdvancedTab({ preferences, onChange }: Props) {
 					</div>
 					<div>
 						<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-							Outbound len
+							{t('settings.adv.i2pOutboundLen')}
 						</label>
 						<input
 							type="number"

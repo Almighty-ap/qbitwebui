@@ -16,6 +16,7 @@ import { useInstance } from '../hooks/useInstance'
 import { PER_PAGE_OPTIONS } from '../utils/pagination'
 import { formatSpeed, formatSize } from '../utils/format'
 import { getSpeedLimitsMode, toggleSpeedLimitsMode } from '../api/qbittorrent'
+import { useI18n } from '../i18n'
 
 function formatLimit(bytes: number): string {
 	if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(0)}M`
@@ -103,6 +104,7 @@ function useAltSpeedMode(instanceId: number) {
 }
 
 export function StatusBar() {
+	const { t } = useI18n()
 	const instance = useInstance()
 	const { data } = useTransferInfo()
 	const { data: syncData } = useSyncMaindata()
@@ -110,9 +112,9 @@ export function StatusBar() {
 	const altSpeed = useAltSpeedMode(instance.id)
 
 	const statusConfig = {
-		connected: { label: 'Connected', type: 'success' as const },
-		firewalled: { label: 'Firewalled', type: 'warning' as const },
-		disconnected: { label: 'Disconnected', type: 'error' as const },
+		connected: { label: t('statusBar.online'), type: 'success' as const },
+		firewalled: { label: t('statusBar.firewalled'), type: 'warning' as const },
+		disconnected: { label: t('statusBar.offline'), type: 'error' as const },
 	}[data?.connection_status ?? 'disconnected']
 
 	const statusColors = {
@@ -169,7 +171,7 @@ export function StatusBar() {
 									backgroundColor: 'color-mix(in srgb, var(--accent) 20%, transparent)',
 									color: 'var(--accent)',
 								}}
-								title={`Download limit: ${formatSpeed(data?.dl_rate_limit ?? 0)}`}
+								title={`${t('columns.dl_limit')}: ${formatSpeed(data?.dl_rate_limit ?? 0)}`}
 							>
 								{formatLimit(data?.dl_rate_limit ?? 0)}
 							</span>
@@ -187,7 +189,7 @@ export function StatusBar() {
 									backgroundColor: 'color-mix(in srgb, var(--warning) 20%, transparent)',
 									color: 'var(--warning)',
 								}}
-								title={`Upload limit: ${formatSpeed(data?.up_rate_limit ?? 0)}`}
+								title={`${t('columns.up_limit')}: ${formatSpeed(data?.up_rate_limit ?? 0)}`}
 							>
 								{formatLimit(data?.up_rate_limit ?? 0)}
 							</span>
@@ -210,8 +212,8 @@ export function StatusBar() {
 					}}
 					title={
 						altSpeed.enabled
-							? 'Alternative speed limits active (click to disable)'
-							: 'Click to enable alternative speed limits'
+							? t('statusBar.altSpeedOn')
+							: t('statusBar.altSpeedOff')
 					}
 				>
 					<Zap className="w-3.5 h-3.5" strokeWidth={2} />
@@ -239,7 +241,7 @@ export function StatusBar() {
 					</button>
 				</div>
 				<span className="text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>
-					{startItem}-{endItem} of {totalItems}
+					{t('statusBar.range', { start: startItem, end: endItem, total: totalItems })}
 				</span>
 				<div className="flex items-center gap-1">
 					<button
@@ -268,7 +270,7 @@ export function StatusBar() {
 					style={{ backgroundColor: 'var(--bg-tertiary)', borderColor: 'var(--border)' }}
 				>
 					<span className="text-[10px] font-medium uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-						Total
+						{t('common.total')}
 					</span>
 					<span className="text-xs font-mono" style={{ color: 'var(--accent)' }}>
 						{formatSize(syncData?.server_state.alltime_dl ?? 0)}

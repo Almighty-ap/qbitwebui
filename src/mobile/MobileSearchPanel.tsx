@@ -20,17 +20,18 @@ import { formatSize } from '../utils/format'
 import { extractTags, sortResults, filterResults, type SortKey } from '../utils/search'
 import { PathInput } from '../components/ui/PathInput'
 import { usePathHistory } from '../hooks/usePathHistory'
+import { useI18n } from '../i18n'
 
-function formatAge(dateStr: string): string {
+function formatAge(dateStr: string, t: (key: string, params?: Record<string, string | number>) => string): string {
 	const date = new Date(dateStr)
 	const now = new Date()
 	const diff = now.getTime() - date.getTime()
 	const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-	if (days === 0) return 'Today'
-	if (days === 1) return '1d'
-	if (days < 30) return `${days}d`
-	if (days < 365) return `${Math.floor(days / 30)}mo`
-	return `${Math.floor(days / 365)}y`
+	if (days === 0) return t('search.ageToday')
+	if (days === 1) return t('search.age1d')
+	if (days < 30) return t('search.ageDays', { count: days })
+	if (days < 365) return t('search.ageMonths', { count: Math.floor(days / 30) })
+	return t('search.ageYears', { count: Math.floor(days / 365) })
 }
 
 interface Props {
@@ -39,6 +40,7 @@ interface Props {
 }
 
 export function MobileSearchPanel({ instances, onBack }: Props) {
+	const { t } = useI18n()
 	const [integrations, setIntegrations] = useState<Integration[]>([])
 	const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null)
 	const { addPath } = usePathHistory()
@@ -135,7 +137,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 			setResults(data)
 			setFilter('')
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Search failed')
+			setError(err instanceof Error ? err.message : t('errors.searchFailed'))
 		} finally {
 			setSearching(false)
 		}
@@ -153,7 +155,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 			setFormData({ label: '', url: '', api_key: '' })
 			setTestResult(null)
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Failed to add')
+			setError(err instanceof Error ? err.message : t('common.failed'))
 		} finally {
 			setSubmitting(false)
 		}
@@ -166,11 +168,11 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 			const result = await testIntegrationConnection(formData.url, formData.api_key)
 			setTestResult(
 				result.success
-					? { success: true, message: `Connected! Prowlarr ${result.version}` }
-					: { success: false, message: result.error || 'Failed' }
+					? { success: true, message: t('search.connectedProwlarr', { version: result.version ?? '' }) }
+					: { success: false, message: result.error || t('common.failed') }
 			)
 		} catch (err) {
-			setTestResult({ success: false, message: err instanceof Error ? err.message : 'Failed' })
+			setTestResult({ success: false, message: err instanceof Error ? err.message : t('common.failed') })
 		} finally {
 			setTesting(false)
 		}
@@ -187,7 +189,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 			}
 			setDeleteConfirm(null)
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Failed to delete')
+			setError(err instanceof Error ? err.message : t('common.failed'))
 		}
 	}
 
@@ -221,7 +223,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 			setShowGrabSheet(null)
 			setTimeout(() => setGrabResult(null), 3000)
 		} catch (err) {
-			setGrabResult({ guid: result.guid, success: false, message: err instanceof Error ? err.message : 'Failed' })
+			setGrabResult({ guid: result.guid, success: false, message: err instanceof Error ? err.message : t('common.failed') })
 		} finally {
 			setGrabbing(null)
 		}
@@ -246,7 +248,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 						<ChevronLeft className="w-5 h-5" style={{ color: 'var(--text-primary)' }} strokeWidth={2} />
 					</button>
 					<h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-						Add Prowlarr
+						{t('search.addProwlarr')}
 					</h2>
 				</div>
 				<form onSubmit={handleAddIntegration} className="space-y-4">
@@ -255,7 +257,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 							className="block text-xs font-medium mb-2 uppercase tracking-wider"
 							style={{ color: 'var(--text-muted)' }}
 						>
-							Label
+							{t('common.label')}
 						</label>
 						<input
 							type="text"
@@ -276,7 +278,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 							className="block text-xs font-medium mb-2 uppercase tracking-wider"
 							style={{ color: 'var(--text-muted)' }}
 						>
-							URL
+							{t('common.url')}
 						</label>
 						<input
 							type="url"
@@ -297,7 +299,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 							className="block text-xs font-medium mb-2 uppercase tracking-wider"
 							style={{ color: 'var(--text-muted)' }}
 						>
-							API Key
+							{t('common.apiKey')}
 						</label>
 						<input
 							type="password"
@@ -342,7 +344,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 							className="flex-1 py-3 rounded-xl text-sm font-medium disabled:opacity-50 border"
 							style={{ borderColor: 'var(--border)', color: 'var(--text-primary)' }}
 						>
-							{testing ? 'Testing...' : 'Test'}
+							{testing ? t('common.testing') : t('common.test')}
 						</button>
 						<button
 							type="submit"
@@ -350,7 +352,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 							className="flex-1 py-3 rounded-xl text-sm font-medium disabled:opacity-50"
 							style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 						>
-							{submitting ? 'Adding...' : 'Add'}
+							{submitting ? t('common.adding') : t('common.add')}
 						</button>
 					</div>
 				</form>
@@ -366,7 +368,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 						<ChevronLeft className="w-5 h-5" style={{ color: 'var(--text-primary)' }} strokeWidth={2} />
 					</button>
 					<h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-						Prowlarr Search
+						{t('search.prowlarrSearch')}
 					</h2>
 				</div>
 				<div
@@ -380,14 +382,14 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 						<Search className="w-8 h-8" style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
 					</div>
 					<p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-						No Prowlarr configured
+						{t('search.noProwlarrConfigured')}
 					</p>
 					<button
 						onClick={() => setShowAddForm(true)}
 						className="px-5 py-2.5 rounded-xl text-sm font-medium"
 						style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 					>
-						Add Prowlarr
+						{t('search.addProwlarr')}
 					</button>
 				</div>
 			</div>
@@ -402,7 +404,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 						<ChevronLeft className="w-5 h-5" style={{ color: 'var(--text-primary)' }} strokeWidth={2} />
 					</button>
 					<h2 className="text-lg font-semibold flex-1" style={{ color: 'var(--text-primary)' }}>
-						Prowlarr Search
+						{t('search.prowlarrSearch')}
 					</h2>
 					<button
 						onClick={() => setShowIntegrationPicker(true)}
@@ -425,7 +427,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 							type="text"
 							value={query}
 							onChange={(e) => setQuery(e.target.value)}
-							placeholder="Search torrents..."
+							placeholder={t('search.searchTorrents')}
 							className="flex-1 bg-transparent outline-none text-base"
 							style={{ color: 'var(--text-primary)' }}
 							inputMode="search"
@@ -450,8 +452,8 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 						>
 							<span className="truncate">
 								{selectedIndexer === '-2'
-									? 'All Indexers'
-									: torrentIndexers.find((i) => String(i.id) === selectedIndexer)?.name || 'All'}
+									? t('search.allIndexers')
+									: torrentIndexers.find((i) => String(i.id) === selectedIndexer)?.name || t('common.all')}
 							</span>
 							<ChevronDown className="w-4 h-4 shrink-0 ml-2" style={{ color: 'var(--text-muted)' }} strokeWidth={2} />
 						</button>
@@ -467,8 +469,8 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 						>
 							<span className="truncate">
 								{selectedCategory
-									? prowlarrCategories.find((c) => String(c.id) === selectedCategory)?.name || 'All'
-									: 'All Categories'}
+									? prowlarrCategories.find((c) => String(c.id) === selectedCategory)?.name || t('common.all')
+									: t('search.allCategories')}
 							</span>
 							<svg
 								className="w-4 h-4 shrink-0 ml-2"
@@ -493,7 +495,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 									style={{ borderColor: 'var(--accent-contrast)', borderTopColor: 'transparent' }}
 								/>
 							) : (
-								'Search'
+								t('search.searchBtn')
 							)}
 						</button>
 					</div>
@@ -532,7 +534,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 								}}
 							>
 								<ArrowUpDown className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} strokeWidth={2} />
-								<span>{sortKey === 'seeders' ? 'Seeders' : sortKey === 'size' ? 'Size' : 'Age'}</span>
+								<span>{sortKey === 'seeders' ? t('search.seeders') : sortKey === 'size' ? t('common.size') : t('search.age')}</span>
 								<span style={{ color: 'var(--text-muted)' }}>{sortAsc ? '↑' : '↓'}</span>
 							</button>
 							{availableTags.length > 0 && (
@@ -546,7 +548,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 									}}
 								>
 									<Filter className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} strokeWidth={2} />
-									<span>Filter</span>
+									<span>{t('common.filter')}</span>
 								</button>
 							)}
 							{filter && (
@@ -581,7 +583,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 										<span
 											onClick={(e) => {
 												e.stopPropagation()
-												alert('Freeleech')
+												alert(t('search.freeleech'))
 											}}
 											className="shrink-0 mt-0.5 px-1 py-0.5 rounded text-[9px] font-bold"
 											style={{ backgroundColor: 'color-mix(in srgb, #a6e3a1 20%, transparent)', color: '#a6e3a1' }}
@@ -594,7 +596,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 								<div className="flex items-center gap-3 mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
 									<span className="truncate max-w-[100px]">{result.indexer}</span>
 									<span>{formatSize(result.size)}</span>
-									<span>{formatAge(result.publishDate)}</span>
+									<span>{formatAge(result.publishDate, t)}</span>
 									<span className="ml-auto flex items-center gap-1">
 										<span style={{ color: '#a6e3a1' }}>{result.seeders ?? '-'}</span>
 										<span>/</span>
@@ -611,7 +613,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 											color: grabResult.success ? '#a6e3a1' : 'var(--error)',
 										}}
 									>
-										{grabResult.success ? 'Added!' : grabResult.message}
+										{grabResult.success ? t('rss.added') : grabResult.message}
 									</div>
 								)}
 							</div>
@@ -622,7 +624,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 				{!searching && results.length === 0 && query && (
 					<div className="text-center py-12">
 						<p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-							No results found
+							{t('search.noResults')}
 						</p>
 					</div>
 				)}
@@ -648,7 +650,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 						</div>
 						<div className="px-5 pb-3 border-b" style={{ borderColor: 'var(--border)' }}>
 							<h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-								Select Indexer
+								{t('search.selectIndexer')}
 							</h3>
 						</div>
 						<div className="overflow-y-auto max-h-[50vh] p-2">
@@ -660,7 +662,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 								className="w-full flex items-center justify-between px-4 py-3 rounded-xl"
 								style={{ backgroundColor: selectedIndexer === '-2' ? 'var(--bg-tertiary)' : 'transparent' }}
 							>
-								<span style={{ color: 'var(--text-primary)' }}>All Indexers</span>
+								<span style={{ color: 'var(--text-primary)' }}>{t('search.allIndexers')}</span>
 								{selectedIndexer === '-2' && (
 									<Check className="w-5 h-5" style={{ color: 'var(--accent)' }} strokeWidth={2} />
 								)}
@@ -708,7 +710,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 						</div>
 						<div className="px-5 pb-3 border-b" style={{ borderColor: 'var(--border)' }}>
 							<h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-								Select Category
+								{t('search.selectCategory')}
 							</h3>
 						</div>
 						<div className="overflow-y-auto max-h-[50vh] p-2">
@@ -720,7 +722,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 								className="w-full flex items-center justify-between px-4 py-3 rounded-xl"
 								style={{ backgroundColor: selectedCategory === '' ? 'var(--bg-tertiary)' : 'transparent' }}
 							>
-								<span style={{ color: 'var(--text-primary)' }}>All Categories</span>
+								<span style={{ color: 'var(--text-primary)' }}>{t('search.allCategories')}</span>
 								{selectedCategory === '' && (
 									<svg
 										className="w-5 h-5"
@@ -789,7 +791,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 							style={{ borderColor: 'var(--border)' }}
 						>
 							<h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-								Prowlarr Instance
+								{t('search.prowlarrInstance')}
 							</h3>
 							<button
 								onClick={() => {
@@ -863,14 +865,14 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 							<div className="flex items-center gap-3 mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
 								<span>{formatSize(showGrabSheet.size)}</span>
 								<span>{showGrabSheet.indexer}</span>
-								<span style={{ color: '#a6e3a1' }}>{showGrabSheet.seeders} seeds</span>
+								<span style={{ color: '#a6e3a1' }}>{t('search.seedsCount', { count: showGrabSheet.seeders ?? 0 })}</span>
 							</div>
 						</div>
 						<div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4">
 							{instances.length > 1 && (
 								<div>
 									<div className="text-xs font-medium px-1 pb-2" style={{ color: 'var(--text-muted)' }}>
-										Instance
+										{t('common.instance')}
 									</div>
 									<div className="space-y-2">
 										{instances.map((instance) => (
@@ -894,7 +896,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 							)}
 							<div>
 								<div className="text-xs font-medium px-1 pb-2" style={{ color: 'var(--text-muted)' }}>
-									Category
+									{t('common.category')}
 								</div>
 								<button
 									type="button"
@@ -907,19 +909,19 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 										color: grabCategory ? 'var(--text-primary)' : 'var(--text-muted)',
 									}}
 								>
-									<span>{loadingCategories ? 'Loading...' : grabCategory || 'None'}</span>
+									<span>{loadingCategories ? t('common.loading') : grabCategory || t('common.none')}</span>
 									<ChevronDown className="w-4 h-4 shrink-0" style={{ color: 'var(--text-muted)' }} strokeWidth={2} />
 								</button>
 							</div>
 							<div>
 								<div className="text-xs font-medium px-1 pb-2" style={{ color: 'var(--text-muted)' }}>
-									Save Path
+									{t('torrents.savePath')}
 								</div>
 								<PathInput
 									value={grabSavepath}
 									onChange={setGrabSavepath}
 									disabled={!grabInstance}
-									placeholder="Default"
+									placeholder={t('torrents.savePathPlaceholder')}
 									className="w-full px-4 py-3 rounded-xl border text-base disabled:opacity-50"
 									style={{
 										backgroundColor: 'var(--bg-secondary)',
@@ -930,13 +932,13 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 							</div>
 							<div>
 								<div className="text-xs font-medium px-1 pb-2" style={{ color: 'var(--text-muted)' }}>
-									Download Path
+									{t('details.downloadPath')}
 								</div>
 								<PathInput
 									value={grabDownloadPath}
 									onChange={setGrabDownloadPath}
 									disabled={!grabInstance}
-									placeholder="Default"
+									placeholder={t('torrents.savePathPlaceholder')}
 									className="w-full px-4 py-3 rounded-xl border text-base disabled:opacity-50"
 									style={{
 										backgroundColor: 'var(--bg-secondary)',
@@ -951,7 +953,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 								className="w-full py-3.5 rounded-xl text-base font-medium disabled:opacity-50 active:scale-[0.98] transition-transform"
 								style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 							>
-								{grabbing === showGrabSheet.guid ? 'Grabbing...' : 'Grab'}
+								{grabbing === showGrabSheet.guid ? t('search.grabbing') : t('search.grab')}
 							</button>
 						</div>
 					</div>
@@ -970,10 +972,10 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 						style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 					>
 						<h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-							Delete Integration
+							{t('search.deleteIntegration')}
 						</h3>
 						<p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-							Delete <strong style={{ color: 'var(--text-primary)' }}>{deleteConfirm.label}</strong>?
+							{t('search.deleteIntegrationShort', { name: deleteConfirm.label })}
 						</p>
 						<div className="flex gap-3 mt-5">
 							<button
@@ -981,14 +983,14 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 								className="flex-1 py-3 rounded-xl text-sm font-medium"
 								style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
 							>
-								Cancel
+								{t('common.cancel')}
 							</button>
 							<button
 								onClick={handleDeleteIntegration}
 								className="flex-1 py-3 rounded-xl text-sm font-medium"
 								style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 							>
-								Delete
+								{t('common.delete')}
 							</button>
 						</div>
 					</div>
@@ -1015,7 +1017,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 						</div>
 						<div className="px-5 pb-3 border-b" style={{ borderColor: 'var(--border)' }}>
 							<h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-								Sort By
+								{t('search.sortBy')}
 							</h3>
 						</div>
 						<div className="p-2">
@@ -1034,10 +1036,10 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 									style={{ backgroundColor: sortKey === key ? 'var(--bg-tertiary)' : 'transparent' }}
 								>
 									<span style={{ color: 'var(--text-primary)' }}>
-										{key === 'seeders' ? 'Seeders' : key === 'size' ? 'Size' : 'Age'}
+										{key === 'seeders' ? t('search.seeders') : key === 'size' ? t('common.size') : t('search.age')}
 									</span>
 									{sortKey === key && (
-										<span style={{ color: 'var(--accent)' }}>{sortAsc ? '↑ Ascending' : '↓ Descending'}</span>
+										<span style={{ color: 'var(--accent)' }}>{sortAsc ? t('search.ascending') : t('search.descending')}</span>
 									)}
 								</button>
 							))}
@@ -1066,13 +1068,13 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 						</div>
 						<div className="px-5 pb-3 border-b" style={{ borderColor: 'var(--border)' }}>
 							<h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-								Filter
+								{t('common.filter')}
 							</h3>
 						</div>
 						<div className="px-4 py-3 border-b" style={{ borderColor: 'var(--border)' }}>
 							<input
 								type="text"
-								placeholder="Type to filter..."
+								placeholder={t('common.typeToFilter')}
 								value={filter}
 								onChange={(e) => setFilter(e.target.value)}
 								className="w-full px-4 py-2.5 rounded-xl border text-base"
@@ -1126,7 +1128,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 						</div>
 						<div className="px-5 pb-3 border-b" style={{ borderColor: 'var(--border)' }}>
 							<h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-								Category
+								{t('common.category')}
 							</h3>
 						</div>
 						<div className="overflow-y-auto max-h-[50vh] p-2">
@@ -1138,7 +1140,7 @@ export function MobileSearchPanel({ instances, onBack }: Props) {
 								className="w-full flex items-center justify-between px-4 py-3 rounded-xl"
 								style={{ backgroundColor: !grabCategory ? 'var(--bg-tertiary)' : 'transparent' }}
 							>
-								<span style={{ color: !grabCategory ? 'var(--accent)' : 'var(--text-primary)' }}>None</span>
+								<span style={{ color: !grabCategory ? 'var(--accent)' : 'var(--text-primary)' }}>{t('common.none')}</span>
 								{!grabCategory && <Check className="w-5 h-5" style={{ color: 'var(--accent)' }} strokeWidth={2} />}
 							</button>
 							{Object.keys(grabCategories).map((cat) => (

@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { Check, Info, User, Lock, LogOut } from 'lucide-react'
 import { ThemeSwitcher } from './ThemeSwitcher'
+import { LanguageSwitcher } from './LanguageSwitcher'
 import { useUpdateCheck } from '../hooks/useUpdateCheck'
 import { renderMarkdown } from '../utils/markdown'
+import { useI18n } from '../i18n'
 
 declare const __APP_VERSION__: string
 
@@ -18,6 +20,7 @@ interface Props {
 }
 
 export function Header({ activeTab, onTabChange, username, authDisabled, onLogout, onPasswordChange }: Props) {
+	const { t } = useI18n()
 	const [userMenuOpen, setUserMenuOpen] = useState(false)
 	const {
 		hasUpdate,
@@ -39,25 +42,26 @@ export function Header({ activeTab, onTabChange, username, authDisabled, onLogou
 				</div>
 				<div className="flex items-center gap-1 p-1 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)' }}>
 					{[
-						{ id: 'dashboard' as Tab, label: 'Dashboard' },
-						{ id: 'tools' as Tab, label: 'Tools' },
-					].map((t) => (
+						{ id: 'dashboard' as Tab, label: t('header.dashboard') },
+						{ id: 'tools' as Tab, label: t('header.tools') },
+					].map((tTab) => (
 						<button
-							key={t.id}
-							onClick={() => onTabChange?.(t.id)}
+							key={tTab.id}
+							onClick={() => onTabChange?.(tTab.id)}
 							className="px-3 py-1 rounded-md text-xs font-medium transition-all"
 							style={{
-								backgroundColor: activeTab === t.id ? 'var(--bg-primary)' : 'transparent',
-								color: activeTab === t.id ? 'var(--text-primary)' : 'var(--text-muted)',
-								boxShadow: activeTab === t.id ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
+								backgroundColor: activeTab === tTab.id ? 'var(--bg-primary)' : 'transparent',
+								color: activeTab === tTab.id ? 'var(--text-primary)' : 'var(--text-muted)',
+								boxShadow: activeTab === tTab.id ? '0 1px 2px rgba(0,0,0,0.1)' : 'none',
 							}}
 						>
-							{t.label}
+							{tTab.label}
 						</button>
 					))}
 				</div>
 			</div>
 			<div className="flex items-center gap-3">
+				<LanguageSwitcher />
 				<ThemeSwitcher />
 				<div className="relative group">
 					<div
@@ -67,7 +71,7 @@ export function Header({ activeTab, onTabChange, username, authDisabled, onLogou
 							borderColor: 'var(--border)',
 							color: 'var(--text-muted)',
 						}}
-						title={hasUpdate ? `Update available: v${latestVersion}` : 'Up to date'}
+						title={hasUpdate ? t('header.updateAvailable', { version: latestVersion ?? '' }) : t('header.upToDate')}
 						tabIndex={0}
 					>
 						v{__APP_VERSION__}
@@ -84,7 +88,7 @@ export function Header({ activeTab, onTabChange, username, authDisabled, onLogou
 						>
 							<div className="flex items-center justify-between mb-2">
 								<span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
-									Release notes{latestVersion ? ` v${latestVersion}` : ''}
+									{latestVersion ? t('header.releaseNotesVersion', { version: latestVersion }) : t('header.releaseNotes')}
 								</span>
 								{releaseUrl && (
 									<a
@@ -94,23 +98,23 @@ export function Header({ activeTab, onTabChange, username, authDisabled, onLogou
 										className="text-[10px] uppercase tracking-wide"
 										style={{ color: 'var(--accent)' }}
 									>
-										View
+										{t('header.view')}
 									</a>
 								)}
 							</div>
 							{updateLoading ? (
 								<p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-									Loading release notes...
+									{t('header.loadingNotes')}
 								</p>
 							) : updateError ? (
 								<p className="text-xs" style={{ color: 'var(--error)' }}>
-									Failed to load release notes.
+									{t('header.failedNotes')}
 								</p>
 							) : releaseNotes ? (
 								<div className="space-y-2">{renderMarkdown(releaseNotes)}</div>
 							) : (
 								<p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-									No release notes available.
+									{t('header.noNotes')}
 								</p>
 							)}
 						</div>
@@ -147,7 +151,7 @@ export function Header({ activeTab, onTabChange, username, authDisabled, onLogou
 											style={{ color: 'var(--text-primary)' }}
 										>
 											<Lock className="w-4 h-4" style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
-											Change Password
+											{t('auth.changePassword')}
 										</button>
 									)}
 									{onLogout && (
@@ -160,7 +164,7 @@ export function Header({ activeTab, onTabChange, username, authDisabled, onLogou
 											style={{ color: 'var(--error)' }}
 										>
 											<LogOut className="w-4 h-4" strokeWidth={1.5} />
-											Logout
+											{t('auth.logout')}
 										</button>
 									)}
 								</div>

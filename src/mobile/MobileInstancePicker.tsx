@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ChevronDown, LayoutGrid, Server, Check } from 'lucide-react'
 import type { Instance } from '../api/instances'
+import { useI18n } from '../i18n'
 
 interface Props {
 	instances: Instance[]
@@ -9,8 +10,9 @@ interface Props {
 }
 
 export function MobileInstancePicker({ instances, current, onChange }: Props) {
+	const { t } = useI18n()
 	const [open, setOpen] = useState(false)
-	const currentLabel = current === 'all' ? 'All Instances' : current.label
+	const currentLabel = current === 'all' ? t('common.allInstances') : current.label
 
 	if (instances.length === 1) {
 		return (
@@ -62,7 +64,7 @@ export function MobileInstancePicker({ instances, current, onChange }: Props) {
 									<LayoutGrid className="w-4 h-4" style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
 								</div>
 								<div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-									All Instances
+									{t('common.allInstances')}
 								</div>
 							</div>
 							{current === 'all' && <Check className="w-5 h-5" style={{ color: 'var(--accent)' }} strokeWidth={2.5} />}

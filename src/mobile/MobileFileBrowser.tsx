@@ -23,6 +23,7 @@ import {
 	type FileEntry,
 } from '../api/files'
 import { formatSize } from '../utils/format'
+import { useI18n } from '../i18n'
 
 function formatDate(timestamp: number): string {
 	return new Date(timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
@@ -33,6 +34,7 @@ interface Props {
 }
 
 export function MobileFileBrowser({ onBack }: Props) {
+	const { t } = useI18n()
 	const [path, setPath] = useState('/')
 	const [files, setFiles] = useState<FileEntry[]>([])
 	const [loading, setLoading] = useState(true)
@@ -61,7 +63,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 			const data = await listFiles(path)
 			setFiles(data)
 		} catch (e) {
-			setError(e instanceof Error ? e.message : 'Failed to load')
+			setError(e instanceof Error ? e.message : t('files.failedToLoad'))
 			setFiles([])
 		} finally {
 			setLoading(false)
@@ -136,7 +138,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 			setShowActionSheet(false)
 			await loadFiles()
 		} catch (e) {
-			setError(e instanceof Error ? e.message : 'Delete failed')
+			setError(e instanceof Error ? e.message : t('files.deleteFailed'))
 		} finally {
 			setActionLoading(false)
 		}
@@ -157,7 +159,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 			setPickerPath('/')
 			await loadFiles()
 		} catch (e) {
-			setError(e instanceof Error ? e.message : `${mode} failed`)
+			setError(e instanceof Error ? e.message : t('files.actionFailed'))
 		} finally {
 			setActionLoading(false)
 		}
@@ -176,7 +178,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 			setShowActionSheet(false)
 			await loadFiles()
 		} catch (e) {
-			setError(e instanceof Error ? e.message : 'Rename failed')
+			setError(e instanceof Error ? e.message : t('files.renameFailed'))
 		} finally {
 			setActionLoading(false)
 		}
@@ -206,7 +208,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 						<ChevronLeft className="w-5 h-5" style={{ color: 'var(--text-primary)' }} strokeWidth={2} />
 					</button>
 					<h2 className="text-lg font-semibold flex-1" style={{ color: 'var(--text-primary)' }}>
-						Files
+						{t('files.files')}
 					</h2>
 					{selectionMode && (
 						<button
@@ -217,7 +219,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 							className="text-sm font-medium"
 							style={{ color: 'var(--accent)' }}
 						>
-							Cancel
+							{t('common.cancel')}
 						</button>
 					)}
 				</div>
@@ -295,7 +297,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 							<FolderOpen className="w-8 h-8" style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
 						</div>
 						<p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-							Empty folder
+							{t('files.emptyFolder')}
 						</p>
 					</div>
 				) : (
@@ -306,7 +308,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 								className="w-full text-left px-3 py-2 text-sm"
 								style={{ color: 'var(--accent)' }}
 							>
-								{selected.size === files.length ? 'Deselect All' : 'Select All'}
+								{selected.size === files.length ? t('common.deselectAll') : t('common.selectAll')}
 							</button>
 						)}
 						{files.map((file) => (
@@ -380,7 +382,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 						className="w-full py-3 rounded-xl text-sm font-medium"
 						style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 					>
-						Actions ({selected.size} selected)
+						{t('files.actionsSelected', { count: selected.size })}
 					</button>
 				</div>
 			)}
@@ -405,7 +407,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 						</div>
 						<div className="px-5 pb-3 border-b" style={{ borderColor: 'var(--border)' }}>
 							<h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-								{selected.size} item{selected.size > 1 ? 's' : ''} selected
+								{t('files.itemsSelected', { count: selected.size })}
 							</h3>
 						</div>
 						<div className="p-4 space-y-2">
@@ -416,7 +418,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 									style={{ backgroundColor: 'var(--bg-secondary)' }}
 								>
 									<Pencil className="w-5 h-5" style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
-									<span style={{ color: 'var(--text-primary)' }}>Rename</span>
+									<span style={{ color: 'var(--text-primary)' }}>{t('common.rename')}</span>
 								</button>
 							)}
 							<button
@@ -425,7 +427,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 								style={{ backgroundColor: 'var(--bg-secondary)' }}
 							>
 								<FolderInput className="w-5 h-5" style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
-								<span style={{ color: 'var(--text-primary)' }}>Move to...</span>
+								<span style={{ color: 'var(--text-primary)' }}>{t('files.moveTo')}</span>
 							</button>
 							<button
 								onClick={() => openFolderPicker('copy')}
@@ -433,7 +435,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 								style={{ backgroundColor: 'var(--bg-secondary)' }}
 							>
 								<Copy className="w-5 h-5" style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
-								<span style={{ color: 'var(--text-primary)' }}>Copy to...</span>
+								<span style={{ color: 'var(--text-primary)' }}>{t('files.copyTo')}</span>
 							</button>
 							<button
 								onClick={() => {
@@ -444,7 +446,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 								style={{ backgroundColor: 'color-mix(in srgb, var(--error) 10%, var(--bg-secondary))' }}
 							>
 								<Trash2 className="w-5 h-5" style={{ color: 'var(--error)' }} strokeWidth={1.5} />
-								<span style={{ color: 'var(--error)' }}>Delete</span>
+								<span style={{ color: 'var(--error)' }}>{t('common.delete')}</span>
 							</button>
 						</div>
 					</div>
@@ -471,7 +473,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 						</div>
 						<div className="px-5 pb-3 border-b shrink-0" style={{ borderColor: 'var(--border)' }}>
 							<h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-								{showFolderPicker === 'move' ? 'Move to' : 'Copy to'}
+								{showFolderPicker === 'move' ? t('files.moveToTitle') : t('files.copyToTitle')}
 							</h3>
 						</div>
 						<div className="px-4 py-3 border-b shrink-0 overflow-x-auto" style={{ borderColor: 'var(--border)' }}>
@@ -507,7 +509,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 								</div>
 							) : pickerFolders.length === 0 ? (
 								<div className="text-center py-8 text-sm" style={{ color: 'var(--text-muted)' }}>
-									No subfolders
+									{t('files.noSubfolders')}
 								</div>
 							) : (
 								<div className="space-y-1">
@@ -536,7 +538,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 								className="w-full py-3 rounded-xl text-sm font-medium disabled:opacity-50"
 								style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 							>
-								{actionLoading ? 'Working...' : `${showFolderPicker === 'move' ? 'Move' : 'Copy'} here`}
+								{actionLoading ? t('common.working') : showFolderPicker === 'move' ? t('files.moveHere') : t('files.copyHere')}
 							</button>
 						</div>
 					</div>
@@ -555,7 +557,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 						style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 					>
 						<h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
-							Rename
+							{t('common.rename')}
 						</h3>
 						<input
 							type="text"
@@ -575,7 +577,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 								className="flex-1 py-3 rounded-xl text-sm font-medium"
 								style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
 							>
-								Cancel
+								{t('common.cancel')}
 							</button>
 							<button
 								onClick={handleRename}
@@ -583,7 +585,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 								className="flex-1 py-3 rounded-xl text-sm font-medium disabled:opacity-50"
 								style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 							>
-								{actionLoading ? 'Renaming...' : 'Rename'}
+								{actionLoading ? t('files.renaming') : t('common.rename')}
 							</button>
 						</div>
 					</div>
@@ -602,10 +604,10 @@ export function MobileFileBrowser({ onBack }: Props) {
 						style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 					>
 						<h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-							Delete Files
+							{t('files.deleteFilesTitle')}
 						</h3>
 						<p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-							Delete {selected.size} item{selected.size > 1 ? 's' : ''}? This cannot be undone.
+							{t('files.deleteItemsConfirm', { count: selected.size })}
 						</p>
 						{selected.size <= 3 && (
 							<ul className="mt-3 text-sm space-y-1" style={{ color: 'var(--text-secondary)' }}>
@@ -622,7 +624,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 								className="flex-1 py-3 rounded-xl text-sm font-medium"
 								style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
 							>
-								Cancel
+								{t('common.cancel')}
 							</button>
 							<button
 								onClick={handleDelete}
@@ -630,7 +632,7 @@ export function MobileFileBrowser({ onBack }: Props) {
 								className="flex-1 py-3 rounded-xl text-sm font-medium disabled:opacity-50"
 								style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 							>
-								{actionLoading ? 'Deleting...' : 'Delete'}
+								{actionLoading ? t('common.deleting') : t('common.delete')}
 							</button>
 						</div>
 					</div>

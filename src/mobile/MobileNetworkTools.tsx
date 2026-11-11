@@ -33,6 +33,7 @@ import {
 	type DnsInfo,
 	type NetworkInterface,
 } from '../api/netAgent'
+import { useI18n } from '../i18n'
 
 interface Props {
 	instances: Instance[]
@@ -53,6 +54,7 @@ function formatBandwidth(bps: number): string {
 }
 
 export function MobileNetworkTools({ instances, onBack }: Props) {
+	const { t } = useI18n()
 	const agentInstances = instances.filter((i) => i.agent_enabled)
 	const [selectedInstance, setSelectedInstance] = useState<Instance | null>(agentInstances[0] || null)
 	const [agentOnline, setAgentOnline] = useState<boolean | null>(null)
@@ -122,7 +124,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 			const data = await getIpInfo(selectedInstance.id)
 			setIpInfo({ status: 'success', data, error: null })
 		} catch (e) {
-			setIpInfo((prev) => ({ ...prev, status: 'error', error: e instanceof Error ? e.message : 'Failed' }))
+			setIpInfo((prev) => ({ ...prev, status: 'error', error: e instanceof Error ? e.message : t('common.failed') }))
 		}
 	}
 
@@ -133,7 +135,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 			const data = await runSpeedtest(selectedInstance.id, selectedServer || undefined)
 			setSpeedtest({ status: 'success', data, error: null })
 		} catch (e) {
-			setSpeedtest({ status: 'error', data: null, error: e instanceof Error ? e.message : 'Failed' })
+			setSpeedtest({ status: 'error', data: null, error: e instanceof Error ? e.message : t('common.failed') })
 		}
 	}
 
@@ -144,7 +146,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 			const data = await getDnsInfo(selectedInstance.id)
 			setDns({ status: 'success', data, error: null })
 		} catch (e) {
-			setDns((prev) => ({ ...prev, status: 'error', error: e instanceof Error ? e.message : 'Failed' }))
+			setDns((prev) => ({ ...prev, status: 'error', error: e instanceof Error ? e.message : t('common.failed') }))
 		}
 	}
 
@@ -155,7 +157,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 			const data = await getInterfaces(selectedInstance.id)
 			setIfaces({ status: 'success', data, error: null })
 		} catch (e) {
-			setIfaces((prev) => ({ ...prev, status: 'error', error: e instanceof Error ? e.message : 'Failed' }))
+			setIfaces((prev) => ({ ...prev, status: 'error', error: e instanceof Error ? e.message : t('common.failed') }))
 		}
 	}
 
@@ -168,13 +170,13 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 			const data = await execCommand(selectedInstance.id, cmd)
 			setCommandResult({ status: 'success', data, error: null })
 		} catch (e) {
-			setCommandResult({ status: 'error', data: null, error: e instanceof Error ? e.message : 'Failed' })
+			setCommandResult({ status: 'error', data: null, error: e instanceof Error ? e.message : t('common.failed') })
 		}
 	}
 
 	const canRun = selectedInstance && agentOnline
 	const serverOptions = [
-		{ value: 0, label: loadingServers ? 'Loading...' : 'Auto (nearest)' },
+		{ value: 0, label: loadingServers ? t('common.loading') : t('network.autoNearest') },
 		...speedtestServers.map((s) => ({ value: s.id, label: `${s.name} - ${s.location}` })),
 	]
 
@@ -188,7 +190,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 						</button>
 						<div className="flex-1">
 							<h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-								Network Tools
+								{t('network.title')}
 							</h2>
 						</div>
 					</div>
@@ -201,10 +203,10 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 						<Network className="w-8 h-8" style={{ color: 'var(--text-muted)' }} strokeWidth={1.5} />
 					</div>
 					<h3 className="text-base font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-						No Agent Configured
+						{t('network.noAgent')}
 					</h3>
 					<p className="text-sm text-center mb-6" style={{ color: 'var(--text-muted)' }}>
-						Enable net-agent on an instance to run network diagnostics
+						{t('network.noAgentDescMobile')}
 					</p>
 					<a
 						href="https://mkbula.github.io/qbitwebui/guide/network-agent/"
@@ -213,7 +215,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 						className="px-5 py-2.5 rounded-xl text-sm font-medium"
 						style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 					>
-						Setup Guide
+						{t('network.setupGuide')}
 					</a>
 				</div>
 			</div>
@@ -229,10 +231,10 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 					</button>
 					<div className="flex-1">
 						<h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-							Network Tools
+							{t('network.title')}
 						</h2>
 						<p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-							Run tests from your instance
+							{t('network.runDiagnosticsDesc')}
 						</p>
 					</div>
 					{agentOnline !== null && (
@@ -245,7 +247,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 								style={{ backgroundColor: agentOnline ? '#a6e3a1' : 'var(--error)' }}
 							/>
 							<span className="text-xs" style={{ color: agentOnline ? '#a6e3a1' : 'var(--error)' }}>
-								{agentOnline ? 'Online' : 'Offline'}
+								{agentOnline ? t('instances.online') : t('instances.offline')}
 							</span>
 						</div>
 					)}
@@ -274,7 +276,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 					>
 						<Activity className="w-4 h-4 shrink-0" style={{ color: 'var(--error)' }} />
 						<span className="text-xs" style={{ color: 'var(--error)' }}>
-							Agent not reachable. Ensure net-agent is running.
+							{t('network.agentNotReachableShort')}
 						</span>
 					</div>
 				)}
@@ -292,7 +294,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 						<div className="flex items-center gap-2.5">
 							<Globe className="w-4 h-4" style={{ color: 'var(--accent)' }} strokeWidth={2} />
 							<span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-								External IP
+								{t('network.externalIp')}
 							</span>
 							{ipInfo.data && (
 								<span className="text-xs font-mono" style={{ color: 'var(--accent)' }}>
@@ -314,7 +316,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 								className="w-full py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2"
 								style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 							>
-								{ipInfo.status === 'loading' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Fetch IP Info'}
+								{ipInfo.status === 'loading' ? <Loader2 className="w-4 h-4 animate-spin" /> : t('network.fetchIpInfo')}
 							</button>
 							{ipInfo.status === 'error' && (
 								<p className="text-xs" style={{ color: 'var(--error)' }}>
@@ -357,11 +359,11 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 						<div className="flex items-center gap-2.5">
 							<Server className="w-4 h-4" style={{ color: 'var(--accent)' }} strokeWidth={2} />
 							<span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-								DNS Servers
+								{t('network.dnsServers')}
 							</span>
 							{dns.data && (
 								<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-									{dns.data.servers.length} found
+									{t('network.foundCount', { count: dns.data.servers.length })}
 								</span>
 							)}
 						</div>
@@ -379,7 +381,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 								className="w-full py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2"
 								style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 							>
-								{dns.status === 'loading' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Fetch DNS'}
+								{dns.status === 'loading' ? <Loader2 className="w-4 h-4 animate-spin" /> : t('network.fetchDns')}
 							</button>
 							{dns.status === 'error' && (
 								<p className="text-xs" style={{ color: 'var(--error)' }}>
@@ -402,7 +404,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 									))}
 									{dns.data.servers.length === 0 && (
 										<p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-											No DNS servers found
+											{t('network.noDnsServers')}
 										</p>
 									)}
 								</div>
@@ -422,11 +424,13 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 						<div className="flex items-center gap-2.5">
 							<Network className="w-4 h-4" style={{ color: 'var(--accent)' }} strokeWidth={2} />
 							<span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-								Interfaces
+								{t('network.interfaces')}
 							</span>
 							{ifaces.data && (
 								<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-									{ifaces.data.filter((i) => i.addr_info?.some((a) => a.family === 'inet')).length} active
+									{t('network.activeCount', {
+										count: ifaces.data.filter((i) => i.addr_info?.some((a) => a.family === 'inet')).length,
+									})}
 								</span>
 							)}
 						</div>
@@ -444,7 +448,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 								className="w-full py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2"
 								style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 							>
-								{ifaces.status === 'loading' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'List Interfaces'}
+								{ifaces.status === 'loading' ? <Loader2 className="w-4 h-4 animate-spin" /> : t('network.listInterfaces')}
 							</button>
 							{ifaces.status === 'error' && (
 								<p className="text-xs" style={{ color: 'var(--error)' }}>
@@ -494,7 +498,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 						<div className="flex items-center gap-2.5">
 							<Gauge className="w-4 h-4" style={{ color: 'var(--accent)' }} strokeWidth={2} />
 							<span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-								Speedtest
+								{t('network.speedtest')}
 							</span>
 							<span
 								className="text-xs px-1.5 py-0.5 rounded"
@@ -525,10 +529,10 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 								{speedtest.status === 'loading' ? (
 									<>
 										<Loader2 className="w-4 h-4 animate-spin" />
-										Running...
+										{t('common.running')}
 									</>
 								) : (
-									'Run Speedtest'
+									t('network.runSpeedtest')
 								)}
 							</button>
 							{speedtest.status === 'loading' && (
@@ -556,7 +560,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 										/>
 									</div>
 									<p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-										This typically takes 30-60 seconds
+										{t('network.speedtestDuration')}
 									</p>
 								</div>
 							)}
@@ -571,7 +575,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 										<div className="flex items-center gap-1.5 mb-1">
 											<ArrowDown className="w-3 h-3" style={{ color: 'var(--accent)' }} />
 											<span className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-												Down
+												{t('network.down')}
 											</span>
 										</div>
 										<div className="flex items-baseline gap-1">
@@ -587,7 +591,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 										<div className="flex items-center gap-1.5 mb-1">
 											<ArrowUp className="w-3 h-3" style={{ color: '#a6e3a1' }} />
 											<span className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-												Up
+												{t('network.up')}
 											</span>
 										</div>
 										<div className="flex items-baseline gap-1">
@@ -603,7 +607,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 										<div className="flex items-center gap-1.5 mb-1">
 											<Activity className="w-3 h-3" style={{ color: 'var(--warning)' }} />
 											<span className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-												Ping
+												{t('network.ping')}
 											</span>
 										</div>
 										<div className="flex items-baseline gap-1">
@@ -619,7 +623,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 										<div className="flex items-center gap-1.5 mb-1">
 											<Server className="w-3 h-3" style={{ color: 'var(--text-muted)' }} />
 											<span className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-												Server
+												{t('network.server')}
 											</span>
 										</div>
 										<div className="text-xs font-medium truncate" style={{ color: 'var(--text-primary)' }}>
@@ -646,7 +650,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 						<div className="flex items-center gap-2.5">
 							<Terminal className="w-4 h-4" style={{ color: 'var(--accent)' }} strokeWidth={2} />
 							<span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-								Terminal
+								{t('network.terminal')}
 							</span>
 						</div>
 						{expandedCard === 'terminal' ? (
@@ -712,7 +716,7 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 									className="w-full py-2.5 rounded-lg text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2"
 									style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 								>
-									{commandResult.status === 'loading' ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Execute'}
+									{commandResult.status === 'loading' ? <Loader2 className="w-4 h-4 animate-spin" /> : t('network.execute')}
 								</button>
 							</form>
 							<div
@@ -720,12 +724,12 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 								style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border)' }}
 							>
 								{commandResult.status === 'idle' && (
-									<span style={{ color: 'var(--text-muted)' }}>ping, dig, nslookup, traceroute, curl, wget</span>
+									<span style={{ color: 'var(--text-muted)' }}>{t('network.allowedCommands')}</span>
 								)}
 								{commandResult.status === 'loading' && (
 									<div className="flex items-center gap-2">
 										<Loader2 className="w-3 h-3 animate-spin" style={{ color: 'var(--accent)' }} />
-										<span style={{ color: 'var(--text-muted)' }}>Executing...</span>
+										<span style={{ color: 'var(--text-muted)' }}>{t('network.executing')}</span>
 									</div>
 								)}
 								{commandResult.status === 'error' && (
@@ -734,14 +738,14 @@ export function MobileNetworkTools({ instances, onBack }: Props) {
 								{commandResult.status === 'success' && commandResult.data && (
 									<>
 										<pre className="whitespace-pre-wrap break-all" style={{ color: 'var(--text-secondary)' }}>
-											{commandResult.data.output || '(no output)'}
+											{commandResult.data.output || t('network.noOutput')}
 										</pre>
 										{commandResult.data.error && (
 											<div
 												className="mt-2 pt-2"
 												style={{ borderTop: '1px solid var(--border)', color: 'var(--warning)' }}
 											>
-												Exit: {commandResult.data.error}
+												{t('network.exit', { code: commandResult.data.error })}
 											</div>
 										)}
 									</>

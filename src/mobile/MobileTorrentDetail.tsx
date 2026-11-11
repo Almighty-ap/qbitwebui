@@ -10,33 +10,34 @@ import { PathInput } from '../components/ui/PathInput'
 import { SpeedLimitFields } from '../components/ui/SpeedLimitFields'
 import { getLimitChanges, limitToKiB, type SpeedLimitChanges, type SpeedLimitValues } from '../utils/speedLimits'
 import { usePathHistory } from '../hooks/usePathHistory'
+import { useI18n } from '../i18n'
 
 type Tab = 'general' | 'files' | 'trackers' | 'peers' | 'http'
 type PathEditorMode = 'savePath' | 'downloadPath' | null
 
 const PAUSED_STATES: TorrentState[] = ['pausedDL', 'pausedUP', 'stoppedDL', 'stoppedUP']
 
-function getTrackerStatus(status: number): string {
+function getTrackerStatus(status: number, t: (key: string) => string): string {
 	switch (status) {
 		case 2:
-			return 'Working'
+			return t('details.trackerWorking')
 		case 3:
-			return 'Updating'
+			return t('details.trackerUpdating')
 		case 4:
-			return 'Error'
+			return t('details.trackerError')
 		default:
-			return 'Disabled'
+			return t('details.trackerDisabled')
 	}
 }
 
-function getPriorityLabel(priority: number): string {
+function getPriorityLabel(priority: number, t: (key: string) => string): string {
 	switch (priority) {
 		case 0:
-			return 'Skip'
+			return t('details.skip')
 		case 1:
-			return 'Normal'
+			return t('details.normal')
 		default:
-			return 'High'
+			return t('details.high')
 	}
 }
 
@@ -47,6 +48,7 @@ interface Props {
 }
 
 export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props) {
+	const { t } = useI18n()
 	const [tab, setTab] = useState<Tab>('general')
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 	const [pathEditorMode, setPathEditorMode] = useState<PathEditorMode>(null)
@@ -191,18 +193,18 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 	}
 
 	const pathMutationPending = setLocationMutation.isPending || setDownloadPathMutation.isPending
-	const pathEditorTitle = pathEditorMode === 'savePath' ? 'Change Save Path' : 'Change Download Path'
+	const pathEditorTitle = pathEditorMode === 'savePath' ? t('torrents.changeSavePath') : t('torrents.changeDownloadPath')
 
 	const tabs: { id: Tab; label: string; count?: number }[] = [
-		{ id: 'general', label: 'General' },
-		{ id: 'files', label: 'Files', count: files?.length },
+		{ id: 'general', label: t('details.general') },
+		{ id: 'files', label: t('details.files'), count: files?.length },
 		{
 			id: 'trackers',
-			label: 'Trackers',
+			label: t('details.trackers'),
 			count: trackers?.filter((t) => t.url.startsWith('http') || t.url.startsWith('udp')).length,
 		},
-		{ id: 'peers', label: 'Peers', count: peers.length },
-		{ id: 'http', label: 'HTTP', count: webSeeds?.length },
+		{ id: 'peers', label: t('details.peers'), count: peers.length },
+		{ id: 'http', label: t('details.http'), count: webSeeds?.length },
 	]
 
 	if (!torrent) {
@@ -236,7 +238,7 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 							>
 								{torrent.name}
 							</Drawer.Title>
-							<Drawer.Description className="sr-only">Torrent details</Drawer.Description>
+							<Drawer.Description className="sr-only">{t('details.torrentDetailsDesc')}</Drawer.Description>
 							<div className="flex items-center gap-2 mt-2">
 								<div
 									className="h-1.5 flex-1 rounded-full overflow-hidden"
@@ -269,12 +271,12 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 								{isPaused ? (
 									<>
 										<Play className="w-5 h-5" strokeWidth={2} />
-										Resume
+										{t('mobile.resume')}
 									</>
 								) : (
 									<>
 										<Pause className="w-5 h-5" strokeWidth={2} />
-										Pause
+										{t('mobile.pause')}
 									</>
 								)}
 							</button>
@@ -284,7 +286,7 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 								style={{ backgroundColor: 'color-mix(in srgb, var(--error) 15%, transparent)', color: 'var(--error)' }}
 							>
 								<Trash2 className="w-5 h-5" strokeWidth={2} />
-								Delete
+								{t('common.delete')}
 							</button>
 						</div>
 
@@ -313,11 +315,11 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 						>
 							{tab === 'general' && (
 								<div className="space-y-3">
-									<InfoRow label="Size" value={formatSize(torrent.size)} />
-									<InfoRow label="Downloaded" value={formatSize(torrent.downloaded)} />
-									<InfoRow label="Uploaded" value={formatSize(torrent.uploaded)} />
+									<InfoRow label={t('common.size')} value={formatSize(torrent.size)} />
+									<InfoRow label={t('details.downloaded')} value={formatSize(torrent.downloaded)} />
+									<InfoRow label={t('details.uploaded')} value={formatSize(torrent.uploaded)} />
 									<InfoRow
-										label="Ratio"
+										label={t('details.shareRatio')}
 										value={
 											torrent.downloaded === 0 && torrent.progress >= 1 && torrent.size > 0
 												? '∞'
@@ -325,39 +327,39 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 										}
 									/>
 									<div className="h-px my-2" style={{ backgroundColor: 'var(--border)' }} />
-									<InfoRow label="Download Speed" value={formatSpeed(torrent.dlspeed)} accent />
-									<InfoRow label="Upload Speed" value={formatSpeed(torrent.upspeed)} accent="#a6e3a1" />
-									<InfoRow label="Seeds" value={`${torrent.num_seeds}`} />
-									<InfoRow label="Peers" value={`${torrent.num_leechs}`} />
+									<InfoRow label={t('details.dlSpeed')} value={formatSpeed(torrent.dlspeed)} accent />
+									<InfoRow label={t('details.upSpeed')} value={formatSpeed(torrent.upspeed)} accent="#a6e3a1" />
+									<InfoRow label={t('details.seeds')} value={`${torrent.num_seeds}`} />
+									<InfoRow label={t('details.peersCount')} value={`${torrent.num_leechs}`} />
 									<EditableRow
-										label="Speed Limits"
+										label={t('torrents.speedLimits')}
 										value={`↓ ${formatLimit(torrent.dl_limit)}  ↑ ${formatLimit(torrent.up_limit)}`}
 										onEdit={() => setLimits(initialLimits)}
 										editDisabled={speedLimitsMutation.isPending}
 									/>
 									<div className="h-px my-2" style={{ backgroundColor: 'var(--border)' }} />
-									<InfoRow label="Added" value={formatDate(torrent.added_on)} />
-									<InfoRow label="Completed" value={formatDate(torrent.completion_on)} />
-									<InfoRow label="Seeding Time" value={formatDuration(torrent.seeding_time)} />
-									<InfoRow label="Last Activity" value={formatDate(torrent.last_activity)} />
+									<InfoRow label={t('details.addedOn')} value={formatDate(torrent.added_on)} />
+									<InfoRow label={t('details.completedOn')} value={formatDate(torrent.completion_on)} />
+									<InfoRow label={t('details.seedTime')} value={formatDuration(torrent.seeding_time)} />
+									<InfoRow label={t('columns.last_activity')} value={formatDate(torrent.last_activity)} />
 									<div className="h-px my-2" style={{ backgroundColor: 'var(--border)' }} />
-									<InfoRow label="Category" value={torrent.category || '-'} />
-									<InfoRow label="Tags" value={torrent.tags || '-'} />
+									<InfoRow label={t('torrents.category')} value={torrent.category || '-'} />
+									<InfoRow label={t('torrents.tags')} value={torrent.tags || '-'} />
 									<EditableRow
-										label="Save Path"
+										label={t('details.savePath')}
 										value={torrent.save_path}
 										onEdit={() => openPathEditor('savePath')}
 										editDisabled={pathMutationPending}
 									/>
 									{torrent.download_path && (torrent.download_path !== torrent.save_path || torrent.progress < 1) && (
-										<EditableRow
-											label="Download Path"
+											<EditableRow
+												label={t('details.downloadPath')}
 											value={torrent.download_path}
 											onEdit={torrent.progress < 1 ? () => openPathEditor('downloadPath') : undefined}
 											editDisabled={pathMutationPending}
 										/>
 									)}
-									{properties?.comment && <InfoRow label="Comment" value={properties.comment} small />}
+									{properties?.comment && <InfoRow label={t('details.comment')} value={properties.comment} small />}
 								</div>
 							)}
 
@@ -388,13 +390,13 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 											</div>
 											<div className="flex items-center gap-3 mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
 												<span>{formatSize(file.size)}</span>
-												<span>Priority: {getPriorityLabel(file.priority)}</span>
+												<span>{t('details.priority')}: {getPriorityLabel(file.priority, t)}</span>
 											</div>
 										</div>
 									))}
 									{(!files || files.length === 0) && (
 										<div className="py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-											No files
+											{t('details.noFiles')}
 										</div>
 									)}
 								</div>
@@ -415,17 +417,17 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 												</div>
 												<div className="flex items-center gap-3 mt-2 text-xs">
 													<span style={{ color: tracker.status === 2 ? '#a6e3a1' : 'var(--text-muted)' }}>
-														{getTrackerStatus(tracker.status)}
+														{getTrackerStatus(tracker.status, t)}
 													</span>
-													<span style={{ color: 'var(--text-muted)' }}>Seeds: {tracker.num_seeds}</span>
-													<span style={{ color: 'var(--text-muted)' }}>Peers: {tracker.num_peers}</span>
+													<span style={{ color: 'var(--text-muted)' }}>{t('details.seedsColon', { count: tracker.num_seeds })}</span>
+													<span style={{ color: 'var(--text-muted)' }}>{t('details.peersColon', { count: tracker.num_peers })}</span>
 												</div>
 											</div>
 										))}
 									{(!trackers ||
 										trackers.filter((t) => t.url.startsWith('http') || t.url.startsWith('udp')).length === 0) && (
 										<div className="py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-											No trackers
+											{t('details.noTrackers')}
 										</div>
 									)}
 								</div>
@@ -461,7 +463,7 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 									))}
 									{peers.length === 0 && (
 										<div className="py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-											No peers connected
+											{t('details.noPeers')}
 										</div>
 									)}
 								</div>
@@ -482,7 +484,7 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 									))}
 									{(!webSeeds || webSeeds.length === 0) && (
 										<div className="py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-											No HTTP sources
+											{t('details.noHttpSources')}
 										</div>
 									)}
 								</div>
@@ -531,7 +533,7 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 									className="flex-1 py-3 rounded-xl text-sm font-medium disabled:opacity-50"
 									style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
 								>
-									Cancel
+									{t('common.cancel')}
 								</button>
 								<button
 									onClick={handlePathSave}
@@ -539,7 +541,7 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 									className="flex-1 py-3 rounded-xl text-sm font-medium disabled:opacity-50"
 									style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 								>
-									{pathMutationPending ? 'Saving...' : 'Save'}
+									{pathMutationPending ? t('common.saving') : t('common.save')}
 								</button>
 							</div>
 						</div>
@@ -560,7 +562,7 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 							onClick={(e) => e.stopPropagation()}
 						>
 							<h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
-								Speed Limits
+								{t('torrents.speedLimits')}
 							</h3>
 							<SpeedLimitFields
 								value={limits}
@@ -583,7 +585,7 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 									className="flex-1 py-3 rounded-xl text-sm font-medium disabled:opacity-50"
 									style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
 								>
-									Cancel
+									{t('common.cancel')}
 								</button>
 								<button
 									onClick={handleLimitsSave}
@@ -591,7 +593,7 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 									className="flex-1 py-3 rounded-xl text-sm font-medium disabled:opacity-50"
 									style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 								>
-									{speedLimitsMutation.isPending ? 'Saving...' : 'Save'}
+									{speedLimitsMutation.isPending ? t('common.saving') : t('common.save')}
 								</button>
 							</div>
 						</div>
@@ -612,10 +614,10 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 							onClick={(e) => e.stopPropagation()}
 						>
 							<h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-								Delete Torrent
+								{t('torrents.deleteConfirmTitle')}
 							</h3>
 							<p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-								Are you sure you want to delete this torrent?
+								{t('torrents.deleteConfirmThis')}
 							</p>
 							<label className="flex items-center gap-3 mb-5 cursor-pointer">
 								<input
@@ -625,7 +627,7 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 									className="w-5 h-5 rounded"
 								/>
 								<span className="text-sm" style={{ color: 'var(--text-primary)' }}>
-									Also delete files from disk
+									{t('torrents.deleteFilesCheckbox')}
 								</span>
 							</label>
 							<div className="flex gap-3">
@@ -634,14 +636,14 @@ export function MobileTorrentDetail({ torrentHash, instanceId, onClose }: Props)
 									className="flex-1 py-3 rounded-xl text-sm font-medium"
 									style={{ backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
 								>
-									Cancel
+									{t('common.cancel')}
 								</button>
 								<button
 									onClick={handleDelete}
 									className="flex-1 py-3 rounded-xl text-sm font-medium"
 									style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 								>
-									Delete
+									{t('common.delete')}
 								</button>
 							</div>
 						</div>
@@ -689,6 +691,7 @@ function EditableRow({
 	onEdit?: () => void
 	editDisabled?: boolean
 }) {
+	const { t } = useI18n()
 	return (
 		<div className="flex items-start justify-between gap-3">
 			<div className="min-w-0 flex-1">
@@ -706,7 +709,7 @@ function EditableRow({
 					className="shrink-0 text-xs hover:opacity-80 disabled:opacity-50"
 					style={{ color: 'var(--accent)' }}
 				>
-					Edit
+					{t('common.edit')}
 				</button>
 			)}
 		</div>

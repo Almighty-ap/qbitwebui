@@ -38,6 +38,7 @@ import { Statistics } from './Statistics'
 import { NetworkTools } from './NetworkTools'
 import { Checkbox } from './ui'
 import { formatSpeed, formatSize } from '../utils/format'
+import { useI18n, translateError } from '../i18n'
 
 type Tab = 'dashboard' | 'tools'
 type Tool = 'indexers' | 'files' | 'orphans' | 'rss' | 'logs' | 'cross-seed' | 'statistics' | 'network' | null
@@ -100,6 +101,7 @@ export function InstanceManager({
 	onTabChange,
 	onToolChange,
 }: Props) {
+	const { t } = useI18n()
 	const tab = initialTab
 	const [instances, setInstances] = useState<Instance[]>([])
 	const [stats, setStats] = useState<InstanceStats[]>([])
@@ -148,7 +150,7 @@ export function InstanceManager({
 			const data = await getInstances()
 			setInstances(data)
 		} catch {
-			setError('Failed to load instances')
+			setError(t('errors.failedToLoadInstances'))
 		} finally {
 			setLoading(false)
 		}
@@ -211,7 +213,7 @@ export function InstanceManager({
 			setTestResult(null)
 			await loadInstances()
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Operation failed')
+			setError(err instanceof Error ? err.message : t('common.failed'))
 		} finally {
 			setSubmitting(false)
 		}
@@ -224,7 +226,7 @@ export function InstanceManager({
 			setDeleteConfirm(null)
 			await loadInstances()
 		} catch {
-			setError('Failed to delete instance')
+			setError(t('errors.failedToDeleteInstance'))
 		}
 	}
 
@@ -253,12 +255,15 @@ export function InstanceManager({
 			}
 			const data = await res.json()
 			if (res.ok) {
-				setTestResult({ success: true, message: `Connected! qBittorrent ${data.version}` })
+				setTestResult({ success: true, message: t('instances.connectedVersion', { version: data.version }) })
 			} else {
-				setTestResult({ success: false, message: data.error || 'Connection failed' })
+				setTestResult({ success: false, message: translateError(data.error, t) || t('errors.connectionFailed') })
 			}
 		} catch (err) {
-			setTestResult({ success: false, message: err instanceof Error ? err.message : 'Connection failed' })
+			setTestResult({
+				success: false,
+				message: err instanceof Error ? translateError(err.message, t) : t('errors.connectionFailed'),
+			})
 		} finally {
 			setTesting(false)
 		}
@@ -270,7 +275,7 @@ export function InstanceManager({
 		setFormData({ ...formData, agent_enabled: enabled, agent_url: enabled ? formData.agent_url : '' })
 		setUseCustomAgentUrl(false)
 		if (!enabled) return
-		if (!formData.url) return setTestResult({ success: false, message: 'Enter a qBittorrent URL first' })
+		if (!formData.url) return setTestResult({ success: false, message: t('errors.enterQbitUrlFirst') })
 
 		setAgentTesting(true)
 		setTestResult(null)
@@ -284,11 +289,11 @@ export function InstanceManager({
 			const data = await res.json()
 			setTestResult(
 				res.ok
-					? { success: true, message: 'Agent is reachable' }
-					: { success: false, message: data.error || 'Agent not reachable - try custom URL' }
+					? { success: true, message: t('errors.agentReachable') }
+					: { success: false, message: translateError(data.error, t) || t('errors.agentNotReachableCustom') }
 			)
 		} catch {
-			setTestResult({ success: false, message: 'Failed to test agent connection' })
+			setTestResult({ success: false, message: t('errors.failedToConnectAgent') })
 		} finally {
 			setAgentTesting(false)
 		}
@@ -296,7 +301,7 @@ export function InstanceManager({
 
 	async function testAgentConnection() {
 		const url = formData.agent_url || formData.url
-		if (!url) return setTestResult({ success: false, message: 'Enter a URL first' })
+		if (!url) return setTestResult({ success: false, message: t('errors.enterQbitUrlFirst') })
 
 		setAgentTesting(true)
 		setTestResult(null)
@@ -310,11 +315,11 @@ export function InstanceManager({
 			const data = await res.json()
 			setTestResult(
 				res.ok
-					? { success: true, message: 'Agent is reachable' }
-					: { success: false, message: data.error || 'Agent not reachable' }
+					? { success: true, message: t('errors.agentReachable') }
+					: { success: false, message: translateError(data.error, t) || t('errors.agentNotReachable') }
 			)
 		} catch {
-			setTestResult({ success: false, message: 'Failed to test agent connection' })
+			setTestResult({ success: false, message: t('errors.failedToConnectAgent') })
 		} finally {
 			setAgentTesting(false)
 		}
@@ -343,10 +348,10 @@ export function InstanceManager({
 	}
 
 	const testButtonLabel = testing
-		? 'Testing...'
+		? t('common.testing')
 		: editingId && !formData.qbt_password && !formData.skip_auth
-			? 'Test Saved'
-			: 'Test Connection'
+			? t('instances.testSaved')
+			: t('instances.testConnection')
 
 	async function handleLogout() {
 		await logout()
@@ -368,11 +373,11 @@ export function InstanceManager({
 		e.preventDefault()
 		setPasswordError('')
 		if (passwordData.new !== passwordData.confirm) {
-			setPasswordError('New passwords do not match')
+			setPasswordError(t('errors.passwordsDoNotMatch'))
 			return
 		}
 		if (passwordData.new.length < 8) {
-			setPasswordError('Password must be at least 8 characters')
+			setPasswordError(t('errors.passwordLength'))
 			return
 		}
 		setChangingPassword(true)
@@ -381,7 +386,7 @@ export function InstanceManager({
 			setShowPasswordModal(false)
 			setPasswordData({ current: '', new: '', confirm: '' })
 		} catch (err) {
-			setPasswordError(err instanceof Error ? err.message : 'Failed to change password')
+			setPasswordError(err instanceof Error ? translateError(err.message, t) : t('errors.failedToChangePassword'))
 		} finally {
 			setChangingPassword(false)
 		}
@@ -391,7 +396,7 @@ export function InstanceManager({
 		return (
 			<div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
 				<div className="text-sm" style={{ color: 'var(--text-muted)' }}>
-					Loading...
+					{t('common.loading')}
 				</div>
 			</div>
 		)
@@ -421,7 +426,7 @@ export function InstanceManager({
 								style={{ color: 'var(--text-muted)' }}
 							>
 								<ChevronLeft className="w-4 h-4" strokeWidth={2} />
-								Back to Tools
+								{t('tools.backToTools')}
 							</button>
 							{initialTool === 'indexers' && <SearchPanel />}
 							{initialTool === 'files' && <FileBrowser enabled={filesEnabled} />}
@@ -435,7 +440,7 @@ export function InstanceManager({
 					) : (
 						<>
 							<h1 className="text-xl font-semibold mb-6" style={{ color: 'var(--text-primary)' }}>
-								Tools
+								{t('header.tools')}
 							</h1>
 							<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
 								<button
@@ -448,7 +453,7 @@ export function InstanceManager({
 										Prowlarr
 									</div>
 									<div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-										Search indexers
+										{t('tools.searchIndexers')}
 									</div>
 								</button>
 								<button
@@ -458,10 +463,10 @@ export function InstanceManager({
 								>
 									<FolderOpen className="w-8 h-8 mb-3" style={{ color: 'var(--accent)' }} strokeWidth={1.5} />
 									<div className="font-medium" style={{ color: 'var(--text-primary)' }}>
-										File Browser
+										{t('files.title')}
 									</div>
 									<div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-										Browse downloads
+										{t('tools.browseDownloads')}
 									</div>
 								</button>
 								<button
@@ -471,10 +476,10 @@ export function InstanceManager({
 								>
 									<Trash2 className="w-8 h-8 mb-3" style={{ color: 'var(--accent)' }} strokeWidth={1.5} />
 									<div className="font-medium" style={{ color: 'var(--text-primary)' }}>
-										Orphan Manager
+										{t('orphans.title')}
 									</div>
 									<div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-										Clean up torrents
+										{t('tools.cleanUpTorrents')}
 									</div>
 								</button>
 								<button
@@ -484,10 +489,10 @@ export function InstanceManager({
 								>
 									<Rss className="w-8 h-8 mb-3" style={{ color: 'var(--accent)' }} strokeWidth={1.5} />
 									<div className="font-medium" style={{ color: 'var(--text-primary)' }}>
-										RSS Manager
+										{t('rss.title')}
 									</div>
 									<div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-										Feeds & auto-download
+										{t('tools.feedsAutoDownload')}
 									</div>
 								</button>
 								<button
@@ -497,10 +502,10 @@ export function InstanceManager({
 								>
 									<FileText className="w-8 h-8 mb-3" style={{ color: 'var(--accent)' }} strokeWidth={1.5} />
 									<div className="font-medium" style={{ color: 'var(--text-primary)' }}>
-										Log Viewer
+										{t('logs.title')}
 									</div>
 									<div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-										Application logs
+										{t('tools.applicationLogs')}
 									</div>
 								</button>
 								<button
@@ -508,15 +513,15 @@ export function InstanceManager({
 									className="p-6 rounded-xl border text-left transition-all hover:border-[var(--accent)] relative"
 									style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 								>
-									<span className="absolute top-3 right-3 cursor-help" title="Experimental feature">
+									<span className="absolute top-3 right-3 cursor-help" title={t('common.experimentalFeature')}>
 										<AlertTriangle className="w-6 h-6" style={{ color: 'var(--error)' }} />
 									</span>
 									<ArrowLeftRight className="w-8 h-8 mb-3" style={{ color: 'var(--accent)' }} strokeWidth={1.5} />
 									<div className="font-medium" style={{ color: 'var(--text-primary)' }}>
-										Cross-Seed
+										{t('crossSeed.title')}
 									</div>
 									<div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-										Find matching torrents
+										{t('tools.findMatches')}
 									</div>
 								</button>
 								<button
@@ -526,10 +531,10 @@ export function InstanceManager({
 								>
 									<BarChart3 className="w-8 h-8 mb-3" style={{ color: 'var(--accent)' }} strokeWidth={1.5} />
 									<div className="font-medium" style={{ color: 'var(--text-primary)' }}>
-										Statistics
+										{t('stats.title')}
 									</div>
 									<div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-										Transfer history
+										{t('tools.transferHistory')}
 									</div>
 								</button>
 								<button
@@ -539,10 +544,10 @@ export function InstanceManager({
 								>
 									<Globe className="w-8 h-8 mb-3" style={{ color: 'var(--accent)' }} strokeWidth={1.5} />
 									<div className="font-medium" style={{ color: 'var(--text-primary)' }}>
-										Network
+										{t('network.title')}
 									</div>
 									<div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-										IP info, speedtest, DNS
+										{t('tools.networkDiagnostics')}
 									</div>
 								</button>
 							</div>
@@ -553,10 +558,10 @@ export function InstanceManager({
 						{stats.length > 0 && !showingPanel && (
 							<div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
 								{[
-									{ label: 'Total', value: stats.reduce((a, s) => a + s.total, 0), color: 'var(--text-primary)' },
-									{ label: 'Leeching', value: stats.reduce((a, s) => a + s.downloading, 0), color: 'var(--accent)' },
-									{ label: 'Seeding', value: stats.reduce((a, s) => a + s.seeding, 0), color: '#a6e3a1' },
-									{ label: 'Stopped', value: stats.reduce((a, s) => a + s.paused, 0), color: 'var(--text-muted)' },
+									{ label: t('common.all'), value: stats.reduce((a, s) => a + s.total, 0), color: 'var(--text-primary)' },
+									{ label: t('status.downloading'), value: stats.reduce((a, s) => a + s.downloading, 0), color: 'var(--accent)' },
+									{ label: t('status.seeding'), value: stats.reduce((a, s) => a + s.seeding, 0), color: '#a6e3a1' },
+									{ label: t('status.stopped'), value: stats.reduce((a, s) => a + s.paused, 0), color: 'var(--text-muted)' },
 								].map((item) => (
 									<div
 										key={item.label}
@@ -584,7 +589,7 @@ export function InstanceManager({
 										<ArrowDown className="w-5 h-5" style={{ color: 'var(--accent)' }} strokeWidth={2} />
 										<div>
 											<div className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-												Download
+												{t('common.download')}
 											</div>
 											<div className="text-lg font-medium tabular-nums" style={{ color: 'var(--text-primary)' }}>
 												{formatSpeed(stats.reduce((a, s) => a + s.dlSpeed, 0))}
@@ -601,7 +606,7 @@ export function InstanceManager({
 										<ArrowUp className="w-5 h-5" style={{ color: '#a6e3a1' }} strokeWidth={2} />
 										<div>
 											<div className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-												Upload
+												{t('common.upload')}
 											</div>
 											<div className="text-lg font-medium tabular-nums" style={{ color: 'var(--text-primary)' }}>
 												{formatSpeed(stats.reduce((a, s) => a + s.upSpeed, 0))}
@@ -615,7 +620,7 @@ export function InstanceManager({
 									style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 								>
 									<div className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>
-										All-Time Down
+										{t('stats.allTimeDownloaded')}
 									</div>
 									<div className="text-lg font-medium tabular-nums" style={{ color: 'var(--accent)' }}>
 										{formatSize(stats.reduce((a, s) => a + s.allTimeDownload, 0))}
@@ -626,7 +631,7 @@ export function InstanceManager({
 									style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 								>
 									<div className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>
-										All-Time Up
+										{t('stats.allTimeUploaded')}
 									</div>
 									<div className="text-lg font-medium tabular-nums" style={{ color: '#a6e3a1' }}>
 										{formatSize(stats.reduce((a, s) => a + s.allTimeUpload, 0))}
@@ -637,7 +642,7 @@ export function InstanceManager({
 
 						<div className="flex items-center justify-between mb-6">
 							<h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-								Instances
+								{t('instances.title')}
 							</h1>
 							{!showingPanel && (
 								<button
@@ -657,7 +662,7 @@ export function InstanceManager({
 									className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
 									style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 								>
-									Add Instance
+									{t('instances.add')}
 								</button>
 							)}
 						</div>
@@ -677,7 +682,7 @@ export function InstanceManager({
 								style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 							>
 								<h2 className="text-lg font-medium mb-4" style={{ color: 'var(--text-primary)' }}>
-									{editingId ? 'Edit Instance' : 'Add Instance'}
+									{editingId ? t('instances.edit') : t('instances.add')}
 								</h2>
 								<form onSubmit={handleSubmit} className="space-y-4">
 									<div className="grid grid-cols-2 gap-4">
@@ -686,7 +691,7 @@ export function InstanceManager({
 												className="block text-xs font-medium mb-2 uppercase tracking-wider"
 												style={{ color: 'var(--text-muted)' }}
 											>
-												Label
+												{t('instances.label')}
 											</label>
 											<input
 												type="text"
@@ -698,7 +703,7 @@ export function InstanceManager({
 													borderColor: 'var(--border)',
 													color: 'var(--text-primary)',
 												}}
-												placeholder="Home Server"
+												placeholder={t('instances.labelPlaceholder')}
 												required
 											/>
 										</div>
@@ -728,7 +733,7 @@ export function InstanceManager({
 												className="block text-xs font-medium mb-2 uppercase tracking-wider"
 												style={{ color: 'var(--text-muted)' }}
 											>
-												qBittorrent Username
+												{t('instances.qbtUsername')}
 											</label>
 											<input
 												type="text"
@@ -751,7 +756,7 @@ export function InstanceManager({
 												className="block text-xs font-medium mb-2 uppercase tracking-wider"
 												style={{ color: 'var(--text-muted)' }}
 											>
-												qBittorrent Password
+												{t('instances.qbtPassword')}
 											</label>
 											<input
 												type="password"
@@ -764,7 +769,8 @@ export function InstanceManager({
 													color: 'var(--text-primary)',
 													opacity: formData.skip_auth ? 0.5 : 1,
 												}}
-												placeholder={editingId ? '••••••••  (unchanged)' : '••••••••'}
+												placeholder={editingId ? '••••••••' : '••••••••'}
+												title={editingId ? t('instances.qbtPasswordLeaveBlank') : undefined}
 												required={!formData.skip_auth && !editingId}
 												disabled={formData.skip_auth}
 											/>
@@ -774,7 +780,7 @@ export function InstanceManager({
 									<Checkbox
 										checked={formData.skip_auth ?? false}
 										onChange={(v) => setFormData({ ...formData, skip_auth: v })}
-										label="Skip authentication (enable if qBittorrent has IP bypass enabled)"
+										label={t('instances.skipAuthDesc')}
 									/>
 
 									<Checkbox
@@ -782,7 +788,7 @@ export function InstanceManager({
 										onChange={handleAgentToggle}
 										label={
 											<>
-												Enable net-agent (network diagnostics: IP info, speedtest, etc.){' '}
+												{t('instances.agentLabel')}{' '}
 												<a
 													href="https://mkbula.github.io/qbitwebui/guide/network-agent/"
 													target="_blank"
@@ -791,7 +797,7 @@ export function InstanceManager({
 													style={{ color: 'var(--accent)' }}
 													onClick={(e) => e.stopPropagation()}
 												>
-													How to set up
+													{t('instances.howToSetUp')}
 												</a>
 											</>
 										}
@@ -805,7 +811,7 @@ export function InstanceManager({
 													setUseCustomAgentUrl(v)
 													if (!v) setFormData({ ...formData, agent_url: '' })
 												}}
-												label="Use custom agent URL"
+												label={t('instances.useCustomAgentUrl')}
 											/>
 											{useCustomAgentUrl && (
 												<div className="flex items-center gap-2 max-w-md">
@@ -828,7 +834,7 @@ export function InstanceManager({
 														className="px-2 py-1 rounded text-xs border disabled:opacity-50 shrink-0"
 														style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
 													>
-														{agentTesting ? '...' : 'Test'}
+														{agentTesting ? '...' : t('common.test')}
 													</button>
 												</div>
 											)}
@@ -845,7 +851,7 @@ export function InstanceManager({
 												color: testResult.success ? '#a6e3a1' : 'var(--error)',
 											}}
 										>
-											{testResult.message}
+											{translateError(testResult.message, t)}
 										</div>
 									)}
 
@@ -856,7 +862,7 @@ export function InstanceManager({
 											className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
 											style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 										>
-											{submitting ? 'Saving...' : editingId ? 'Update' : 'Add'}
+											{submitting ? t('common.loading') : editingId ? t('common.save') : t('common.add')}
 										</button>
 										<button
 											type="button"
@@ -877,7 +883,7 @@ export function InstanceManager({
 											className="px-4 py-2 rounded-lg text-sm border"
 											style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
 										>
-											Cancel
+											{t('common.cancel')}
 										</button>
 									</div>
 								</form>
@@ -894,10 +900,10 @@ export function InstanceManager({
 								style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 							>
 								<p className="text-sm mb-2" style={{ color: 'var(--text-muted)' }}>
-									No instances configured
+									{t('instances.noInstances')}
 								</p>
 								<p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-									Add your first qBittorrent instance to get started
+									{t('instances.noInstancesDesc')}
 								</p>
 							</div>
 						) : (
@@ -947,7 +953,7 @@ export function InstanceManager({
 																}}
 																className="p-2 rounded-lg transition-colors hover:bg-[var(--bg-tertiary)]"
 																style={{ color: 'var(--text-muted)' }}
-																title="Settings"
+																title={t('settings.title')}
 															>
 																<Settings className="w-4 h-4" strokeWidth={1.5} />
 															</button>
@@ -958,6 +964,7 @@ export function InstanceManager({
 																}}
 																className="p-2 rounded-lg transition-colors hover:bg-[var(--bg-tertiary)]"
 																style={{ color: 'var(--text-muted)' }}
+																title={t('common.edit')}
 															>
 																<Pencil className="w-4 h-4" strokeWidth={1.5} />
 															</button>
@@ -968,6 +975,7 @@ export function InstanceManager({
 																}}
 																className="p-2 rounded-lg transition-colors hover:bg-[var(--bg-tertiary)]"
 																style={{ color: 'var(--error)' }}
+																title={t('common.delete')}
 															>
 																<Trash2 className="w-4 h-4" strokeWidth={1.5} />
 															</button>
@@ -980,17 +988,17 @@ export function InstanceManager({
 														>
 															<div className="flex items-center gap-4">
 																<span style={{ color: 'var(--text-muted)' }}>
-																	<span style={{ color: 'var(--text-secondary)' }}>{instanceStats.total}</span> torrents
+																	<span style={{ color: 'var(--text-secondary)' }}>{instanceStats.total}</span> {t('instances.torrentsCount')}
 																</span>
 																<span style={{ color: 'var(--text-muted)' }}>
-																	<span style={{ color: 'var(--accent)' }}>{instanceStats.downloading}</span> leech
+																	<span style={{ color: 'var(--accent)' }}>{instanceStats.downloading}</span> {t('common.download')}
 																</span>
 																<span style={{ color: 'var(--text-muted)' }}>
-																	<span style={{ color: '#a6e3a1' }}>{instanceStats.seeding}</span> seed
+																	<span style={{ color: '#a6e3a1' }}>{instanceStats.seeding}</span> {t('status.seeding')}
 																</span>
 															</div>
 															<span className="text-center" style={{ color: 'var(--text-muted)' }}>
-																Free space: {formatSize(instanceStats.freeSpaceOnDisk)}
+																{t('stats.freeDiskSpace')}: {formatSize(instanceStats.freeSpaceOnDisk)}
 															</span>
 															<div className="flex items-center gap-3 justify-end">
 																<span style={{ color: 'var(--accent)' }}>↓ {formatSpeed(instanceStats.dlSpeed)}</span>
@@ -1014,14 +1022,14 @@ export function InstanceManager({
 													style={{ transform: showQuickSettings ? 'rotate(90deg)' : 'rotate(0deg)' }}
 													strokeWidth={2}
 												/>
-												Default behaviour
+												{t('instances.defaultBehaviour')}
 											</button>
 											{showQuickSettings && (
 												<div className="mt-2 ml-4">
 													<Checkbox
 														checked={autoSelectSingle}
 														onChange={toggleAutoSelect}
-														label="Skip dashboard and go directly to torrents view by default"
+														label={t('instances.skipDashboard')}
 													/>
 												</div>
 											)}
@@ -1044,12 +1052,10 @@ export function InstanceManager({
 						style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 					>
 						<h3 className="text-lg font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-							Delete Instance
+							{t('instances.delete')}
 						</h3>
 						<p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
-							Are you sure you want to delete{' '}
-							<strong style={{ color: 'var(--text-primary)' }}>{deleteConfirm.label}</strong>? This action cannot be
-							undone.
+							{t('instances.deleteConfirm', { label: deleteConfirm.label })}
 						</p>
 						<div className="flex gap-3 justify-end">
 							<button
@@ -1057,14 +1063,14 @@ export function InstanceManager({
 								className="px-4 py-2 rounded-lg text-sm border"
 								style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
 							>
-								Cancel
+								{t('common.cancel')}
 							</button>
 							<button
 								onClick={handleDelete}
 								className="px-4 py-2 rounded-lg text-sm font-medium"
 								style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 							>
-								Delete
+								{t('common.delete')}
 							</button>
 						</div>
 					</div>
@@ -1081,7 +1087,7 @@ export function InstanceManager({
 						style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 					>
 						<h3 className="text-lg font-medium mb-4" style={{ color: 'var(--text-primary)' }}>
-							Change Password
+							{t('auth.changePassword')}
 						</h3>
 						<form onSubmit={handlePasswordChange} className="space-y-4">
 							<div>
@@ -1089,7 +1095,7 @@ export function InstanceManager({
 									className="block text-xs font-medium mb-2 uppercase tracking-wider"
 									style={{ color: 'var(--text-muted)' }}
 								>
-									Current Password
+									{t('auth.currentPassword')}
 								</label>
 								<input
 									type="password"
@@ -1109,7 +1115,7 @@ export function InstanceManager({
 									className="block text-xs font-medium mb-2 uppercase tracking-wider"
 									style={{ color: 'var(--text-muted)' }}
 								>
-									New Password
+									{t('auth.newPassword')}
 								</label>
 								<input
 									type="password"
@@ -1129,7 +1135,7 @@ export function InstanceManager({
 									className="block text-xs font-medium mb-2 uppercase tracking-wider"
 									style={{ color: 'var(--text-muted)' }}
 								>
-									Confirm New Password
+									{t('auth.confirmPassword')}
 								</label>
 								<input
 									type="password"
@@ -1166,7 +1172,7 @@ export function InstanceManager({
 									className="px-4 py-2 rounded-lg text-sm border"
 									style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
 								>
-									Cancel
+									{t('common.cancel')}
 								</button>
 								<button
 									type="submit"
@@ -1174,7 +1180,7 @@ export function InstanceManager({
 									className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
 									style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 								>
-									{changingPassword ? 'Changing...' : 'Change Password'}
+									{changingPassword ? t('auth.changingPassword') : t('auth.changePassword')}
 								</button>
 							</div>
 						</form>

@@ -3,6 +3,7 @@ import { Check, Server } from 'lucide-react'
 import { type Instance } from '../api/instances'
 import { deleteTorrents } from '../api/qbittorrent'
 import { formatSize } from '../utils/format'
+import { useI18n } from '../i18n'
 
 interface OrphanTorrent {
 	instanceId: number
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export function OrphanManager({ instances }: Props) {
+	const { t } = useI18n()
 	const [scanning, setScanning] = useState(false)
 	const [orphans, setOrphans] = useState<OrphanTorrent[]>([])
 	const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -98,10 +100,10 @@ export function OrphanManager({ instances }: Props) {
 			<div className="flex items-center justify-between mb-6">
 				<div>
 					<h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-						Orphan Manager
+						{t('orphans.manager')}
 					</h1>
 					<p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-						Find torrents with missing files or unregistered from trackers
+						{t('orphans.managerDesc')}
 					</p>
 				</div>
 				<button
@@ -110,7 +112,7 @@ export function OrphanManager({ instances }: Props) {
 					className="px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
 					style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-contrast)' }}
 				>
-					{scanning ? 'Scanning...' : 'Scan All Instances'}
+					{scanning ? t('orphans.scanning') : t('orphans.scanAll')}
 				</button>
 			</div>
 
@@ -124,7 +126,7 @@ export function OrphanManager({ instances }: Props) {
 						style={{ borderColor: 'var(--border)', borderTopColor: 'var(--accent)' }}
 					/>
 					<span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-						Scanning instances... (check server logs for details)
+						{t('orphans.scanningInstances')}
 					</span>
 				</div>
 			)}
@@ -135,7 +137,7 @@ export function OrphanManager({ instances }: Props) {
 					style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 				>
 					<p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-						No instances configured
+						{t('common.noInstancesConfigured')}
 					</p>
 				</div>
 			)}
@@ -147,10 +149,10 @@ export function OrphanManager({ instances }: Props) {
 				>
 					<Check className="w-12 h-12 mx-auto mb-3" style={{ color: '#a6e3a1' }} strokeWidth={1.5} />
 					<p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-						All clear!
+						{t('orphans.allClear')}
 					</p>
 					<p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-						No orphaned torrents found
+						{t('orphans.noneFound')}
 					</p>
 				</div>
 			)}
@@ -160,10 +162,10 @@ export function OrphanManager({ instances }: Props) {
 					<div className="flex items-center justify-between mb-4">
 						<div className="flex items-center gap-4">
 							<button onClick={selectAll} className="text-sm hover:underline" style={{ color: 'var(--accent)' }}>
-								{selected.size === orphans.length ? 'Deselect all' : 'Select all'}
+								{selected.size === orphans.length ? t('common.deselectAll') : t('common.selectAll')}
 							</button>
 							<span className="text-sm" style={{ color: 'var(--text-muted)' }}>
-								{selected.size} of {orphans.length} selected
+								{t('orphans.selectedOf', { selected: selected.size, total: orphans.length })}
 							</span>
 						</div>
 						{selected.size > 0 && (
@@ -172,7 +174,7 @@ export function OrphanManager({ instances }: Props) {
 								className="px-4 py-2 rounded-lg text-sm font-medium"
 								style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 							>
-								Delete Selected
+								{t('orphans.deleteSelected')}
 							</button>
 						)}
 					</div>
@@ -216,10 +218,10 @@ export function OrphanManager({ instances }: Props) {
 													<span>{formatSize(item.size)}</span>
 													<span>•</span>
 													{item.reason === 'missingFiles' ? (
-														<span style={{ color: 'var(--warning)' }}>Missing files</span>
+														<span style={{ color: 'var(--warning)' }}>{t('orphans.missingFiles')}</span>
 													) : (
 														<span style={{ color: 'var(--error)' }} title={item.trackerMessage}>
-															Unregistered
+															{t('orphans.unregistered')}
 														</span>
 													)}
 												</div>
@@ -243,11 +245,10 @@ export function OrphanManager({ instances }: Props) {
 						style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
 					>
 						<h3 className="text-lg font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-							Delete Torrents
+							{t('torrents.deleteConfirmTitle')}
 						</h3>
 						<p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-							Are you sure you want to delete <strong style={{ color: 'var(--text-primary)' }}>{selected.size}</strong>{' '}
-							torrent{selected.size !== 1 ? 's' : ''}?
+							{t('orphans.deleteTorrentsConfirm', { count: selected.size })}
 						</p>
 						<label className="flex items-center gap-3 mb-6 cursor-pointer">
 							<div
@@ -261,7 +262,7 @@ export function OrphanManager({ instances }: Props) {
 								{deleteFiles && <Check className="w-3 h-3" style={{ color: 'white' }} strokeWidth={3} />}
 							</div>
 							<span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-								Also delete downloaded files
+								{t('torrents.deleteFilesCheckbox')}
 							</span>
 						</label>
 						<div className="flex gap-3 justify-end">
@@ -271,7 +272,7 @@ export function OrphanManager({ instances }: Props) {
 								className="px-4 py-2 rounded-lg text-sm border disabled:opacity-50"
 								style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
 							>
-								Cancel
+								{t('common.cancel')}
 							</button>
 							<button
 								onClick={handleDelete}
@@ -279,7 +280,7 @@ export function OrphanManager({ instances }: Props) {
 								className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50"
 								style={{ backgroundColor: 'var(--error)', color: 'var(--accent-contrast)' }}
 							>
-								{deleting ? 'Deleting...' : 'Delete'}
+								{deleting ? t('common.deleting') : t('common.delete')}
 							</button>
 						</div>
 					</div>

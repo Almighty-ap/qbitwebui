@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { Checkbox } from './Checkbox'
+import { useI18n } from '../../i18n'
 
 interface Option {
 	value: number
@@ -14,7 +15,8 @@ interface MultiSelectProps {
 	placeholder?: string
 }
 
-export function MultiSelect({ options, selected, onChange, placeholder = 'Select...' }: MultiSelectProps) {
+export function MultiSelect({ options, selected, onChange, placeholder }: MultiSelectProps) {
+	const { t } = useI18n()
 	const [open, setOpen] = useState(false)
 	const ref = useRef<HTMLDivElement>(null)
 
@@ -45,7 +47,7 @@ export function MultiSelect({ options, selected, onChange, placeholder = 'Select
 		}
 	}
 
-	const displayText = selected.length === 0 ? placeholder : `${selected.length} selected`
+	const displayText = selected.length === 0 ? (placeholder ?? t('common.select')) : t('common.selected', { count: selected.length })
 
 	return (
 		<div ref={ref} className="relative">
@@ -80,7 +82,7 @@ export function MultiSelect({ options, selected, onChange, placeholder = 'Select
 						<Checkbox
 							checked={allSelected}
 							onChange={handleSelectAll}
-							label={allSelected ? 'Deselect All' : 'Select All'}
+							label={allSelected ? t('common.deselectAll') : t('common.selectAll')}
 						/>
 					</div>
 					{sorted.map((option) => (

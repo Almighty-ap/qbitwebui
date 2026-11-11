@@ -17,6 +17,7 @@ import {
 	type LogEntry,
 	type TorznabIndexer,
 } from '../api/crossSeed'
+import { tGlobal } from '../i18n'
 
 export function useCrossSeed(instances: Instance[]) {
 	const [selectedInstance, setSelectedInstance] = useState<number | null>(instances[0]?.id ?? null)
@@ -140,13 +141,13 @@ export function useCrossSeed(instances: Instance[]) {
 				include_single_episodes: config.include_single_episodes,
 			})
 			if (result.linkDirValid === false) {
-				setError('Link directory not writable')
+				setError(tGlobal('crossSeed.linkDirNotWritable'))
 			} else {
-				setSuccess('Saved')
+				setSuccess(tGlobal('crossSeed.saved'))
 				setTimeout(() => setSuccess(''), 2000)
 			}
 		} catch (e) {
-			setError(e instanceof Error ? e.message : 'Failed')
+			setError(e instanceof Error ? e.message : tGlobal('common.failed'))
 		} finally {
 			setSaving(false)
 		}
@@ -159,7 +160,7 @@ export function useCrossSeed(instances: Instance[]) {
 		setSuccess('')
 		try {
 			const result = await triggerScan(selectedInstance, force)
-			setSuccess(`Done: ${result.matchesFound} matches, ${result.torrentsAdded} added`)
+			setSuccess(tGlobal('crossSeed.doneScan', { matches: result.matchesFound, added: result.torrentsAdded }))
 			getInstanceStatus(selectedInstance)
 				.then(setStatus)
 				.catch(() => {})
@@ -167,7 +168,7 @@ export function useCrossSeed(instances: Instance[]) {
 				.then(setCacheStats)
 				.catch(() => {})
 		} catch (e) {
-			setError(e instanceof Error ? e.message : 'Failed')
+			setError(e instanceof Error ? e.message : tGlobal('common.failed'))
 		} finally {
 			setScanning(false)
 		}
@@ -178,11 +179,11 @@ export function useCrossSeed(instances: Instance[]) {
 		try {
 			setStopping(true)
 			await stopScan(selectedInstance)
-			setSuccess('Stop requested')
+			setSuccess(tGlobal('crossSeed.stopRequested'))
 			setTimeout(() => setSuccess(''), 2000)
 		} catch (e) {
 			setStopping(false)
-			setError(e instanceof Error ? e.message : 'Failed')
+			setError(e instanceof Error ? e.message : tGlobal('common.failed'))
 		}
 	}
 
@@ -190,13 +191,13 @@ export function useCrossSeed(instances: Instance[]) {
 		if (!selectedInstance) return
 		try {
 			const result = await clearCache(selectedInstance)
-			setSuccess(`Cleared ${result.cacheCleared + result.outputCleared} files`)
+			setSuccess(tGlobal('crossSeed.clearedFiles', { count: result.cacheCleared + result.outputCleared }))
 			getCacheStats(selectedInstance)
 				.then(setCacheStats)
 				.catch(() => {})
 			setTimeout(() => setSuccess(''), 2000)
 		} catch (e) {
-			setError(e instanceof Error ? e.message : 'Failed')
+			setError(e instanceof Error ? e.message : tGlobal('common.failed'))
 		}
 	}
 

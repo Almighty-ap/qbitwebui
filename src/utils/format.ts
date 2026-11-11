@@ -1,3 +1,5 @@
+import { tGlobal, getCurrentLang } from '../i18n'
+
 export function formatSpeed(bytes: number, showZero = true): string {
 	if (bytes === 0 && !showZero) return '—'
 	if (bytes < 1024) return `${bytes} B/s`
@@ -63,14 +65,14 @@ export function formatDuration(seconds: number): string {
 }
 
 export function formatRelativeTime(timestamp: number): string {
-	if (timestamp <= 0) return 'Never'
+	if (timestamp <= 0) return tGlobal('time.never')
 	const now = Math.floor(Date.now() / 1000)
 	const diff = now - timestamp
-	if (diff < 60) return 'Just now'
-	if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-	if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
-	if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`
-	return `${Math.floor(diff / 604800)}w ago`
+	if (diff < 60) return tGlobal('time.justNow')
+	if (diff < 3600) return tGlobal('time.mAgo', { m: Math.floor(diff / 60) })
+	if (diff < 86400) return tGlobal('time.hAgo', { h: Math.floor(diff / 3600) })
+	if (diff < 604800) return tGlobal('time.dAgo', { d: Math.floor(diff / 86400) })
+	return tGlobal('time.wAgo', { w: Math.floor(diff / 604800) })
 }
 
 export function formatRelativeDate(timestamp: number): string {
@@ -78,10 +80,11 @@ export function formatRelativeDate(timestamp: number): string {
 	const date = new Date(timestamp * 1000)
 	const now = new Date()
 	const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
-	if (diffDays === 0) return 'Today'
-	if (diffDays === 1) return 'Yesterday'
-	if (diffDays < 7) return `${diffDays}d ago`
-	return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+	if (diffDays === 0) return tGlobal('time.today')
+	if (diffDays === 1) return tGlobal('time.yesterday')
+	if (diffDays < 7) return tGlobal('time.dAgo', { d: diffDays })
+	const locale = getCurrentLang() === 'zh-CN' ? 'zh-CN' : undefined
+	return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' })
 }
 
 export function normalizeSearch(str: string): string {
@@ -91,7 +94,7 @@ export function normalizeSearch(str: string): string {
 export function formatCountdown(timestamp: number | null, fallback = '—'): string {
 	if (!timestamp) return fallback
 	const diff = timestamp - Math.floor(Date.now() / 1000)
-	if (diff <= 0) return 'Now'
+	if (diff <= 0) return tGlobal('time.now')
 	const hours = Math.floor(diff / 3600)
 	const mins = Math.floor((diff % 3600) / 60)
 	if (hours > 0) return `${hours}h ${mins}m`

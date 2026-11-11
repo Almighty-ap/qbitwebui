@@ -25,6 +25,7 @@ import {
 	formatRelativeDate,
 	normalizeSearch,
 } from '../utils/format'
+import { useI18n } from '../i18n'
 
 type TorrentWithInstance = Torrent & { instanceId: number; instanceLabel: string }
 
@@ -46,21 +47,25 @@ const PAUSED_STATES: TorrentState[] = ['pausedDL', 'pausedUP', 'stoppedDL', 'sto
 type StateInfo = { color: string; label: string; icon: 'download' | 'upload' | 'pause' | 'error' | 'check' }
 
 const STATE_INFO: Partial<Record<TorrentState, StateInfo>> = {
-	stalledDL: { color: 'var(--warning)', label: 'Stalled', icon: 'download' },
-	queuedDL: { color: 'var(--text-muted)', label: 'Queued', icon: 'download' },
-	checkingDL: { color: 'var(--accent)', label: 'Checking', icon: 'check' },
-	stalledUP: { color: '#a6e3a1', label: 'Seeding', icon: 'upload' },
-	queuedUP: { color: 'var(--text-muted)', label: 'Queued', icon: 'upload' },
-	checkingUP: { color: '#a6e3a1', label: 'Checking', icon: 'check' },
-	error: { color: 'var(--error)', label: 'Error', icon: 'error' },
-	missingFiles: { color: 'var(--error)', label: 'Error', icon: 'error' },
+	stalledDL: { color: 'var(--warning)', label: 'status.stalled', icon: 'download' },
+	queuedDL: { color: 'var(--text-muted)', label: 'status.queued', icon: 'download' },
+	checkingDL: { color: 'var(--accent)', label: 'status.checking', icon: 'check' },
+	stalledUP: { color: '#a6e3a1', label: 'status.seeding', icon: 'upload' },
+	queuedUP: { color: 'var(--text-muted)', label: 'status.queued', icon: 'upload' },
+	checkingUP: { color: '#a6e3a1', label: 'status.checking', icon: 'check' },
+	error: { color: 'var(--error)', label: 'status.error', icon: 'error' },
+	missingFiles: { color: 'var(--error)', label: 'status.error', icon: 'error' },
 }
 
-function getStateInfo(state: TorrentState): StateInfo {
-	if (STATE_INFO[state]) return STATE_INFO[state]
-	if (DOWNLOADING_STATES.includes(state)) return { color: 'var(--accent)', label: 'Downloading', icon: 'download' }
-	if (SEEDING_STATES.includes(state)) return { color: '#a6e3a1', label: 'Seeding', icon: 'upload' }
-	if (PAUSED_STATES.includes(state)) return { color: 'var(--text-muted)', label: 'Paused', icon: 'pause' }
+function getStateInfo(
+	state: TorrentState,
+	t: (key: string, params?: Record<string, string | number>) => string
+): StateInfo {
+	if (STATE_INFO[state]) return { ...STATE_INFO[state], label: t(STATE_INFO[state].label) }
+	if (DOWNLOADING_STATES.includes(state))
+		return { color: 'var(--accent)', label: t('status.downloading'), icon: 'download' }
+	if (SEEDING_STATES.includes(state)) return { color: '#a6e3a1', label: t('status.seeding'), icon: 'upload' }
+	if (PAUSED_STATES.includes(state)) return { color: 'var(--text-muted)', label: t('status.paused'), icon: 'pause' }
 	return { color: 'var(--text-muted)', label: state, icon: 'pause' }
 }
 
@@ -153,22 +158,25 @@ interface Props {
 }
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
-	{ value: 'all', label: 'All' },
-	{ value: 'downloading', label: 'Downloading' },
-	{ value: 'seeding', label: 'Seeding' },
-	{ value: 'paused', label: 'Paused' },
+	{ value: 'all', label: 'status.all' },
+	{ value: 'downloading', label: 'status.downloading' },
+	{ value: 'seeding', label: 'status.seeding' },
+	{ value: 'paused', label: 'status.paused' },
 ]
 
 const SORT_OPTIONS: { value: SortField; label: string }[] = [
-	{ value: 'added_on', label: 'Added' },
-	{ value: 'dlspeed', label: 'Down Speed' },
-	{ value: 'upspeed', label: 'Up Speed' },
-	{ value: 'ratio', label: 'Ratio' },
-	{ value: 'seeding_time', label: 'Seed Time' },
-	{ value: 'last_activity', label: 'Last Active' },
+	{ value: 'added_on', label: 'columns.added_on' },
+	{ value: 'dlspeed', label: 'columns.dlspeed' },
+	{ value: 'upspeed', label: 'columns.upspeed' },
+	{ value: 'ratio', label: 'columns.ratio' },
+	{ value: 'seeding_time', label: 'columns.seeding_time' },
+	{ value: 'last_activity', label: 'columns.last_activity' },
 ]
 
 export function MobileTorrentList({ instances, search, compact, onToggleCompact, onSelectTorrent }: Props) {
+	const { t } = useI18n()
+	const statusOptions = STATUS_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))
+	const sortOptions = SORT_OPTIONS.map((o) => ({ ...o, label: t(o.label) }))
 	const [status, setStatus] = useState<StatusFilter>('all')
 	const [sortBy, setSortBy] = useState<SortField>('added_on')
 	const [swipedHash, setSwipedHash] = useState<string | null>(null)
@@ -242,8 +250,8 @@ export function MobileTorrentList({ instances, search, compact, onToggleCompact,
 	return (
 		<div className="space-y-3">
 			<div className="flex gap-2">
-				<MobileSelect value={status} options={STATUS_OPTIONS} onChange={setStatus} />
-				<MobileSelect value={sortBy} options={SORT_OPTIONS} onChange={setSortBy} />
+				<MobileSelect value={status} options={statusOptions} onChange={setStatus} />
+				<MobileSelect value={sortBy} options={sortOptions} onChange={setSortBy} />
 				{onToggleCompact && (
 					<button
 						onClick={onToggleCompact}
@@ -262,7 +270,7 @@ export function MobileTorrentList({ instances, search, compact, onToggleCompact,
 			{isLoading ? (
 				<div className="py-12 text-center">
 					<div className="text-sm" style={{ color: 'var(--text-muted)' }}>
-						Loading torrents...
+						{t('mobile.loadingTorrents')}
 					</div>
 				</div>
 			) : filteredTorrents.length === 0 ? (
@@ -276,13 +284,13 @@ export function MobileTorrentList({ instances, search, compact, onToggleCompact,
 						strokeWidth={1}
 					/>
 					<div className="text-sm" style={{ color: 'var(--text-muted)' }}>
-						No torrents found
+						{t('torrents.noTorrents')}
 					</div>
 				</div>
 			) : (
 				<div className={compact ? 'space-y-1' : 'space-y-2'}>
 					{filteredTorrents.map((torrent) => {
-						const stateInfo = getStateInfo(torrent.state)
+						const stateInfo = getStateInfo(torrent.state, t)
 						const isPaused = PAUSED_STATES.includes(torrent.state)
 						const isSwiped = swipedHash === torrent.hash
 						const speed =

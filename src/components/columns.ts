@@ -66,3 +66,10 @@ export const DEFAULT_VISIBLE_COLUMNS = new Set([
 ])
 
 export const DEFAULT_COLUMN_ORDER = COLUMNS.map((c) => c.id)
+
+export function getColumnLabel(col: ColumnDef, t: (key: string) => string): string {
+	const key = 'columns.' + col.id
+	const translated = t(key)
+	return translated !== key ? translated : col.label
+}
+

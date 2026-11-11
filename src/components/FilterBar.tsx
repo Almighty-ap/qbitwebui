@@ -18,15 +18,16 @@ import {
 } from 'lucide-react'
 import type { TorrentFilter } from '../types/qbittorrent'
 import type { Category } from '../api/qbittorrent'
-import type { ColumnDef } from './columns'
+import { getColumnLabel, type ColumnDef } from './columns'
+import { useI18n } from '../i18n'
 
-const filters: { value: TorrentFilter; label: string; Icon: FC<{ className?: string; strokeWidth?: number }> }[] = [
-	{ value: 'all', label: 'All', Icon: LayoutGrid },
-	{ value: 'downloading', label: 'Downloading', Icon: Download },
-	{ value: 'seeding', label: 'Seeding', Icon: Upload },
-	{ value: 'completed', label: 'Completed', Icon: CheckCircle },
-	{ value: 'stopped', label: 'Stopped', Icon: Square },
-	{ value: 'active', label: 'Active', Icon: Zap },
+const filters: { value: TorrentFilter; key: string; Icon: FC<{ className?: string; strokeWidth?: number }> }[] = [
+	{ value: 'all', key: 'status.all', Icon: LayoutGrid },
+	{ value: 'downloading', key: 'status.downloading', Icon: Download },
+	{ value: 'seeding', key: 'status.seeding', Icon: Upload },
+	{ value: 'completed', key: 'status.completed', Icon: CheckCircle },
+	{ value: 'stopped', key: 'status.stopped', Icon: Square },
+	{ value: 'active', key: 'status.active', Icon: Zap },
 ]
 
 interface Props {
@@ -35,28 +36,33 @@ interface Props {
 }
 
 export function FilterBar({ filter, onFilterChange }: Props) {
+	const { t } = useI18n()
 	return (
 		<>
-			{filters.map((f) => (
-				<button
-					key={f.value}
-					onClick={() => onFilterChange(f.value)}
-					title={f.label}
-					className="relative flex items-center gap-1.5 px-2 py-1 rounded transition-all duration-150"
-					style={{
-						color: filter === f.value ? 'var(--accent-contrast)' : 'var(--text-muted)',
-						backgroundColor: filter === f.value ? 'var(--accent)' : 'transparent',
-					}}
-				>
-					<f.Icon className="w-3.5 h-3.5" strokeWidth={2} />
-					<span className="text-xs font-medium">{f.label}</span>
-				</button>
-			))}
+			{filters.map((f) => {
+				const label = t(f.key)
+				return (
+					<button
+						key={f.value}
+						onClick={() => onFilterChange(f.value)}
+						title={label}
+						className="relative flex items-center gap-1.5 px-2 py-1 rounded transition-all duration-150"
+						style={{
+							color: filter === f.value ? 'var(--accent-contrast)' : 'var(--text-muted)',
+							backgroundColor: filter === f.value ? 'var(--accent)' : 'transparent',
+						}}
+					>
+						<f.Icon className="w-3.5 h-3.5" strokeWidth={2} />
+						<span className="text-xs font-medium">{label}</span>
+					</button>
+				)
+			})}
 		</>
 	)
 }
 
 export function SearchInput({ value, onChange }: { value: string; onChange: (s: string) => void }) {
+	const { t } = useI18n()
 	return (
 		<div className="relative flex-1 min-w-[120px] max-w-[280px]">
 			<Search
@@ -66,7 +72,7 @@ export function SearchInput({ value, onChange }: { value: string; onChange: (s: 
 			/>
 			<input
 				type="text"
-				placeholder="Search..."
+				placeholder={t('common.searchPlaceholder')}
 				value={value}
 				onChange={(e) => onChange(e.target.value)}
 				className="w-full h-7 pl-8 pr-3 rounded text-xs transition-all duration-150"
@@ -183,14 +189,15 @@ interface CategoryDropdownProps {
 }
 
 export function CategoryDropdown({ value, onChange, categories }: CategoryDropdownProps) {
+	const { t } = useI18n()
 	const options = Object.keys(categories).map((name) => ({ value: name, label: name }))
 	return (
 		<Dropdown
 			value={value}
 			onChange={onChange}
 			options={options}
-			placeholder="Category"
-			allLabel="All Categories"
+			placeholder={t('filter.categoryPlaceholder')}
+			allLabel={t('filter.allCategories')}
 			Icon={Folder}
 		/>
 	)
@@ -203,22 +210,31 @@ interface TagDropdownProps {
 }
 
 export function TagDropdown({ value, onChange, tags }: TagDropdownProps) {
-	const options = tags.map((t) => ({ value: t, label: t }))
+	const { t } = useI18n()
+	const options = tags.map((tName) => ({ value: tName, label: tName }))
 	return (
-		<Dropdown value={value} onChange={onChange} options={options} placeholder="Tag" allLabel="All Tags" Icon={Tag} />
+		<Dropdown
+			value={value}
+			onChange={onChange}
+			options={options}
+			placeholder={t('filter.tagPlaceholder')}
+			allLabel={t('filter.allTags')}
+			Icon={Tag}
+		/>
 	)
 }
 
 export function ManageButton({ onClick }: { onClick: () => void }) {
+	const { t } = useI18n()
 	return (
 		<button
 			onClick={onClick}
 			className="flex items-center gap-1.5 px-2 py-1 rounded transition-all duration-150 hover:opacity-80"
 			style={{ color: 'var(--text-muted)' }}
-			title="Manage categories & tags"
+			title={t('filter.manageCatTags')}
 		>
 			<Settings className="w-3.5 h-3.5" strokeWidth={2} />
-			<span className="text-xs font-medium">Manage</span>
+			<span className="text-xs font-medium">{t('common.manage')}</span>
 		</button>
 	)
 }
@@ -230,12 +246,13 @@ interface TrackerDropdownProps {
 }
 
 export function TrackerDropdown({ value, onChange, trackers }: TrackerDropdownProps) {
-	const options = trackers.map((t) => {
+	const { t } = useI18n()
+	const options = trackers.map((tUrl) => {
 		try {
-			const url = new URL(t)
-			return { value: t, label: url.hostname }
+			const url = new URL(tUrl)
+			return { value: tUrl, label: url.hostname }
 		} catch {
-			return { value: t, label: t }
+			return { value: tUrl, label: tUrl }
 		}
 	})
 	return (
@@ -243,8 +260,8 @@ export function TrackerDropdown({ value, onChange, trackers }: TrackerDropdownPr
 			value={value}
 			onChange={onChange}
 			options={options}
-			placeholder="Tracker"
-			allLabel="All Trackers"
+			placeholder={t('filter.trackerPlaceholder')}
+			allLabel={t('filter.allTrackers')}
 			Icon={Repeat}
 		/>
 	)
@@ -260,6 +277,7 @@ interface ColumnSelectorProps {
 }
 
 export function ColumnSelector({ columns, visible, onChange, columnOrder, onReorder, onReset }: ColumnSelectorProps) {
+	const { t } = useI18n()
 	const [open, setOpen] = useState(false)
 	const [draggedId, setDraggedId] = useState<string | null>(null)
 	const [pos, setPos] = useState<{ top: number; right: number } | null>(null)
@@ -314,10 +332,10 @@ export function ColumnSelector({ columns, visible, onChange, columnOrder, onReor
 				onClick={handleToggle}
 				className="flex items-center gap-1.5 px-2 py-1 rounded transition-all duration-150"
 				style={{ color: 'var(--text-muted)' }}
-				title="Configure columns"
+				title={t('filter.columns')}
 			>
 				<Columns3 className="w-3.5 h-3.5" strokeWidth={2} />
-				<span className="text-xs font-medium">Columns</span>
+				<span className="text-xs font-medium">{t('filter.columns')}</span>
 			</button>
 			{open &&
 				pos &&
@@ -340,7 +358,7 @@ export function ColumnSelector({ columns, visible, onChange, columnOrder, onReor
 								style={{ borderColor: 'var(--border)' }}
 							>
 								<span className="text-xs uppercase tracking-widest font-medium" style={{ color: 'var(--text-muted)' }}>
-									Columns
+									{t('filter.columns')}
 								</span>
 								<button
 									onClick={() => {
@@ -350,7 +368,7 @@ export function ColumnSelector({ columns, visible, onChange, columnOrder, onReor
 									className="text-xs transition-colors hover:opacity-80"
 									style={{ color: 'var(--accent)' }}
 								>
-									Reset
+									{t('common.reset')}
 								</button>
 							</div>
 							{orderedColumns.map((col) => (
@@ -365,7 +383,7 @@ export function ColumnSelector({ columns, visible, onChange, columnOrder, onReor
 								>
 									<GripHorizontal className="w-3 h-3 shrink-0" style={{ color: 'var(--text-muted)' }} strokeWidth={2} />
 									<button onClick={() => toggle(col.id)} className="flex-1 flex items-center justify-between text-left">
-										<span>{col.label}</span>
+										<span>{getColumnLabel(col, t)}</span>
 										{visible.has(col.id) && (
 											<Check className="w-3 h-3" style={{ color: 'var(--accent)' }} strokeWidth={3} />
 										)}

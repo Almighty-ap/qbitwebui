@@ -5,6 +5,7 @@ import { HexColorPicker } from 'react-colorful'
 import { generateThemeColors, isValidHex } from '../utils/colorUtils'
 import { useTheme } from '../hooks/useTheme'
 import type { Theme } from '../themes'
+import { useI18n } from '../i18n'
 
 type View = 'list' | 'editor'
 
@@ -13,6 +14,7 @@ interface ThemeManagerProps {
 }
 
 export function ThemeManager({ onClose }: ThemeManagerProps) {
+	const { t } = useI18n()
 	const { themes, customThemes, addTheme, updateTheme, deleteTheme } = useTheme()
 	const [view, setView] = useState<View>('list')
 	const [editingTheme, setEditingTheme] = useState<Theme | null>(null)
@@ -73,7 +75,7 @@ export function ThemeManager({ onClose }: ThemeManagerProps) {
 					}
 				})
 			} catch {
-				alert('Failed to import themes. Invalid file format.')
+				alert(t('theme.importFailed'))
 			}
 		}
 		reader.readAsText(file)
@@ -126,11 +128,12 @@ interface ListViewProps {
 }
 
 function ListView({ customThemes, onClose, onNew, onEdit, onDelete, onExport, onImportClick }: ListViewProps) {
+	const { t } = useI18n()
 	return (
 		<>
 			{/* Header */}
 			<div className="p-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--bg-tertiary)]">
-				<h2 className="text-lg font-semibold text-[var(--text-primary)]">Manage Themes</h2>
+				<h2 className="text-lg font-semibold text-[var(--text-primary)]">{t('theme.manage')}</h2>
 				<button onClick={onClose} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
 					<X className="w-5 h-5" strokeWidth={2} />
 				</button>
@@ -143,13 +146,13 @@ function ListView({ customThemes, onClose, onNew, onEdit, onDelete, onExport, on
 					className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-[var(--accent)] text-[var(--accent-contrast)] hover:opacity-90 transition-opacity"
 				>
 					<Plus className="w-4 h-4" strokeWidth={2} />
-					New Theme
+					{t('theme.create')}
 				</button>
 				<div className="flex-1" />
 				<button
 					onClick={onImportClick}
 					className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-primary)] transition-colors"
-					title="Import themes"
+					title={t('theme.import')}
 				>
 					<Upload className="w-4 h-4" strokeWidth={2} />
 				</button>
@@ -157,7 +160,7 @@ function ListView({ customThemes, onClose, onNew, onEdit, onDelete, onExport, on
 					onClick={onExport}
 					disabled={customThemes.length === 0}
 					className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-primary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-					title="Export themes"
+					title={t('theme.export')}
 				>
 					<Download className="w-4 h-4" strokeWidth={2} />
 				</button>
@@ -166,30 +169,30 @@ function ListView({ customThemes, onClose, onNew, onEdit, onDelete, onExport, on
 			{/* Theme List */}
 			<div className="flex-1 overflow-y-auto p-3 space-y-2">
 				{customThemes.length === 0 ? (
-					<div className="py-8 text-center text-sm text-[var(--text-muted)]">No custom themes yet. Create one!</div>
+					<div className="py-8 text-center text-sm text-[var(--text-muted)]">{t('theme.noCustomThemes')}</div>
 				) : (
-					customThemes.map((t) => (
+					customThemes.map((themeItem) => (
 						<div
-							key={t.id}
+							key={themeItem.id}
 							className="flex items-center gap-3 p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-primary)]"
 						>
 							<div className="flex gap-1 shrink-0">
-								<div className="w-3 h-3 rounded-full" style={{ backgroundColor: t.colors.bgPrimary }} />
-								<div className="w-3 h-3 rounded-full" style={{ backgroundColor: t.colors.accent }} />
-								<div className="w-3 h-3 rounded-full" style={{ backgroundColor: t.colors.warning }} />
+								<div className="w-3 h-3 rounded-full" style={{ backgroundColor: themeItem.colors.bgPrimary }} />
+								<div className="w-3 h-3 rounded-full" style={{ backgroundColor: themeItem.colors.accent }} />
+								<div className="w-3 h-3 rounded-full" style={{ backgroundColor: themeItem.colors.warning }} />
 							</div>
-							<span className="flex-1 text-sm font-medium text-[var(--text-primary)] truncate">{t.name}</span>
+							<span className="flex-1 text-sm font-medium text-[var(--text-primary)] truncate">{themeItem.name}</span>
 							<button
-								onClick={() => onEdit(t)}
+								onClick={() => onEdit(themeItem)}
 								className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--bg-secondary)] transition-colors"
-								title="Edit"
+								title={t('common.edit')}
 							>
 								<Pencil className="w-4 h-4" strokeWidth={2} />
 							</button>
 							<button
-								onClick={() => onDelete(t.id)}
+								onClick={() => onDelete(themeItem.id)}
 								className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--error)] hover:bg-[var(--bg-secondary)] transition-colors"
-								title="Delete"
+								title={t('common.delete')}
 							>
 								<Trash2 className="w-4 h-4" strokeWidth={2} />
 							</button>
@@ -213,6 +216,7 @@ interface EditorViewProps {
 }
 
 function EditorView({ initialTheme, existingNames, onSave, onBack }: EditorViewProps) {
+	const { t } = useI18n()
 	const [name, setName] = useState(initialTheme?.name ?? 'My Custom Theme')
 	const [bgPrimary, setBgPrimary] = useState(initialTheme?.colors.bgPrimary ?? '#1e1e2e')
 	const [accent, setAccent] = useState(initialTheme?.colors.accent ?? '#cba6f7')
@@ -244,10 +248,10 @@ function EditorView({ initialTheme, existingNames, onSave, onBack }: EditorViewP
 	}
 
 	const colorFields = [
-		{ label: 'Background', val: bgPrimary, set: setBgPrimary },
-		{ label: 'Accent', val: accent, set: setAccent },
-		{ label: 'Text', val: textPrimary, set: setTextPrimary },
-		{ label: 'Warning', val: warning, set: setWarning },
+		{ label: t('theme.bgColor'), val: bgPrimary, set: setBgPrimary },
+		{ label: t('theme.accentColor'), val: accent, set: setAccent },
+		{ label: t('theme.textColor'), val: textPrimary, set: setTextPrimary },
+		{ label: t('theme.warningColor'), val: warning, set: setWarning },
 	]
 
 	return (
@@ -258,7 +262,7 @@ function EditorView({ initialTheme, existingNames, onSave, onBack }: EditorViewP
 					<ChevronLeft className="w-5 h-5" strokeWidth={2} />
 				</button>
 				<h2 className="text-lg font-semibold text-[var(--text-primary)]">
-					{initialTheme ? 'Edit Theme' : 'New Theme'}
+					{initialTheme ? t('theme.editTheme') : t('theme.create')}
 				</h2>
 			</div>
 
@@ -267,7 +271,7 @@ function EditorView({ initialTheme, existingNames, onSave, onBack }: EditorViewP
 				{/* Theme Name */}
 				<div className="space-y-1">
 					<label className="text-xs font-medium text-[var(--text-secondary)] flex justify-between">
-						<span>Theme Name</span>
+						<span>{t('theme.themeName')}</span>
 						<span className="text-[var(--text-muted)]">{name.length}/20</span>
 					</label>
 					<input
@@ -281,7 +285,7 @@ function EditorView({ initialTheme, existingNames, onSave, onBack }: EditorViewP
 						className="w-full px-3 py-2 bg-[var(--bg-primary)] border rounded-lg text-sm text-[var(--text-primary)] focus:outline-none"
 						style={{ borderColor: isNameTaken ? 'var(--error)' : 'var(--border)' }}
 					/>
-					{isNameTaken && <p className="text-xs text-[var(--error)]">Name already exists</p>}
+					{isNameTaken && <p className="text-xs text-[var(--error)]">{t('theme.nameExists')}</p>}
 				</div>
 
 				{/* Color Inputs */}
@@ -299,13 +303,13 @@ function EditorView({ initialTheme, existingNames, onSave, onBack }: EditorViewP
 					>
 						<div className="flex justify-between items-center">
 							<div className="text-sm font-bold" style={{ color: previewColors.textPrimary }}>
-								{name || 'Theme Name'}
+								{name || t('theme.themeName')}
 							</div>
 							<div
 								className="px-2 py-0.5 rounded-full text-xs font-medium"
 								style={{ backgroundColor: previewColors.accent, color: previewColors.accentContrast }}
 							>
-								Badge
+								{t('theme.badge')}
 							</div>
 						</div>
 						<div
@@ -313,13 +317,13 @@ function EditorView({ initialTheme, existingNames, onSave, onBack }: EditorViewP
 							style={{ backgroundColor: previewColors.bgSecondary, borderColor: previewColors.border }}
 						>
 							<div className="text-xs mb-2" style={{ color: previewColors.textSecondary }}>
-								Preview Card
+								{t('theme.previewCard')}
 							</div>
 							<button
 								className="w-full py-1.5 rounded-md text-xs font-medium"
 								style={{ backgroundColor: previewColors.accent, color: previewColors.accentContrast }}
 							>
-								Action
+								{t('theme.action')}
 							</button>
 						</div>
 					</div>
@@ -332,14 +336,14 @@ function EditorView({ initialTheme, existingNames, onSave, onBack }: EditorViewP
 					onClick={onBack}
 					className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-primary)] transition-colors"
 				>
-					Cancel
+					{t('common.cancel')}
 				</button>
 				<button
 					onClick={handleSave}
 					disabled={!previewColors || !name.trim() || isNameTaken}
 					className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--accent)] text-[var(--accent-contrast)] hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
 				>
-					Save Theme
+					{t('theme.saveTheme')}
 				</button>
 			</div>
 		</>

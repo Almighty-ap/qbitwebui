@@ -1,6 +1,7 @@
 import { FileText } from 'lucide-react'
 import type { QBittorrentPreferences } from '../../types/preferences'
 import { Toggle, Select, Checkbox } from '../ui'
+import { useI18n } from '../../i18n'
 
 interface Props {
 	preferences: Partial<QBittorrentPreferences>
@@ -29,17 +30,19 @@ const LOCALES = [
 ]
 
 const FILE_LOG_AGE_TYPES = [
-	{ value: 0, label: 'Days' },
-	{ value: 1, label: 'Months' },
-	{ value: 2, label: 'Years' },
+	{ value: 0, key: 'settings.days' },
+	{ value: 1, key: 'settings.months' },
+	{ value: 2, key: 'settings.years' },
 ]
 
 export function BehaviorTab({ preferences, onChange }: Props) {
+	const { t } = useI18n()
+	const ageTypeOptions = FILE_LOG_AGE_TYPES.map((o) => ({ value: o.value, label: t(o.key) }))
 	return (
 		<div className="space-y-4">
 			<div className="flex items-center gap-3">
 				<label className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-					Language
+					{t('settings.language')}
 				</label>
 				<Select
 					value={preferences.locale ?? 'en'}
@@ -53,10 +56,10 @@ export function BehaviorTab({ preferences, onChange }: Props) {
 
 			<div>
 				<div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
-					Transfer List
+					{t('settings.transferList')}
 				</div>
 				<Checkbox
-					label="Confirm when deleting torrents"
+					label={t('settings.confirmTorrentDeletion')}
 					checked={preferences.confirm_torrent_deletion ?? true}
 					onChange={(v) => onChange({ confirm_torrent_deletion: v })}
 				/>
@@ -66,12 +69,12 @@ export function BehaviorTab({ preferences, onChange }: Props) {
 
 			<div>
 				<div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
-					Interface
+					{t('settings.interface')}
 				</div>
 				<div className="grid grid-cols-2 gap-x-4 gap-y-1">
 					<div className="flex items-center justify-between">
 						<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-							Show external IP in status bar
+							{t('settings.showExternalIp')}
 						</span>
 						<Toggle
 							checked={preferences.status_bar_external_ip ?? false}
@@ -80,7 +83,7 @@ export function BehaviorTab({ preferences, onChange }: Props) {
 					</div>
 					<div className="flex items-center justify-between">
 						<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-							Performance warning
+							{t('settings.performanceWarning')}
 						</span>
 						<Toggle
 							checked={preferences.performance_warning ?? true}
@@ -101,7 +104,7 @@ export function BehaviorTab({ preferences, onChange }: Props) {
 							strokeWidth={1.5}
 						/>
 						<span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-							File Log
+							{t('settings.fileLog')}
 						</span>
 					</div>
 					<Toggle checked={preferences.file_log_enabled ?? false} onChange={(v) => onChange({ file_log_enabled: v })} />
@@ -111,7 +114,7 @@ export function BehaviorTab({ preferences, onChange }: Props) {
 					<div className="space-y-2 pl-6">
 						<div>
 							<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-								Log path
+								{t('settings.logPath')}
 							</label>
 							<input
 								type="text"
@@ -128,7 +131,7 @@ export function BehaviorTab({ preferences, onChange }: Props) {
 						<div className="grid grid-cols-3 gap-2">
 							<div>
 								<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-									Max size (KiB)
+									{t('settings.maxSizeKiB')}
 								</label>
 								<input
 									type="number"
@@ -144,7 +147,7 @@ export function BehaviorTab({ preferences, onChange }: Props) {
 							</div>
 							<div>
 								<label className="block text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>
-									Delete after
+									{t('settings.deleteAfter')}
 								</label>
 								<input
 									type="number"
@@ -165,14 +168,14 @@ export function BehaviorTab({ preferences, onChange }: Props) {
 								<Select
 									value={preferences.file_log_age_type ?? 1}
 									onChange={(v) => onChange({ file_log_age_type: v })}
-									options={FILE_LOG_AGE_TYPES}
+									options={ageTypeOptions}
 								/>
 							</div>
 						</div>
 						<div className="grid grid-cols-2 gap-x-4 gap-y-1">
 							<div className="flex items-center justify-between">
 								<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-									Backup log file
+									{t('settings.backupLogFile')}
 								</span>
 								<Toggle
 									checked={preferences.file_log_backup_enabled ?? true}
@@ -181,7 +184,7 @@ export function BehaviorTab({ preferences, onChange }: Props) {
 							</div>
 							<div className="flex items-center justify-between">
 								<span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-									Delete old logs
+									{t('settings.deleteOldLogs')}
 								</span>
 								<Toggle
 									checked={preferences.file_log_delete_old ?? true}
