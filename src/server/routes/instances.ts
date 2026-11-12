@@ -6,6 +6,9 @@ import { loginToQbt, testQbtConnection, testStoredQbtInstance } from '../utils/q
 import { authMiddleware } from '../middleware/auth'
 import { clearQbtSession } from './proxy'
 import { fetchWithTls } from '../utils/fetch'
+import { capabilitiesFor, normalizeKind } from '../clients/capabilities'
+import type { InstanceCapabilities } from '../clients/capabilities'
+import { fetchTransmissionStats, testTransmissionConnection, testStoredTransmissionInstance } from '../clients/transmission'
 
 const instances = new Hono()
 
@@ -28,10 +31,13 @@ interface InstanceResponse {
 	skip_auth: boolean
 	agent_enabled: boolean
 	agent_url: string | null
+	kind: string
+	capabilities: InstanceCapabilities
 	created_at: number
 }
 
 function toResponse(i: Instance): InstanceResponse {
+	const kind = normalizeKind(i.kind)
 	return {
 		id: i.id,
 		label: i.label,
@@ -40,6 +46,8 @@ function toResponse(i: Instance): InstanceResponse {
 		skip_auth: !!i.skip_auth,
 		agent_enabled: !!i.agent_enabled,
 		agent_url: i.agent_url,
+		kind,
+		capabilities: capabilitiesFor(kind),
 		created_at: i.created_at,
 	}
 }
@@ -172,13 +180,67 @@ async function fetchInstanceStats(instance: Instance): Promise<InstanceStats> {
 	}
 }
 
+async function fetchStatsForInstance(instance: Instance): Promise<InstanceStats> {
+	if (normalizeKind(instance.kind) !== 'transmission') {
+		return fetchInstanceStats(instance)
+	}
+
+	const base: InstanceStats = {
+		id: instance.id,
+		label: instance.label,
+		online: false,
+		total: 0,
+		downloading: 0,
+		seeding: 0,
+		paused: 0,
+		error: 0,
+		dlSpeed: 0,
+		upSpeed: 0,
+		allTimeDownload: 0,
+		allTimeUpload: 0,
+		freeSpaceOnDisk: 0,
+	}
+
+	const backoff = instanceBackoff.get(instance.id)
+	if (backoff && Date.now() < backoff.nextRetry) {
+		return base
+	}
+
+	try {
+		const tr = await fetchTransmissionStats(instance, INITIAL_TIMEOUT)
+		if (!tr.online) {
+			const attempt = backoff ? Math.min(backoff.attempt + 1, BACKOFF_DELAYS.length - 1) : 0
+			instanceBackoff.set(instance.id, { nextRetry: Date.now() + BACKOFF_DELAYS[attempt], attempt })
+			return base
+		}
+		instanceBackoff.delete(instance.id)
+		return {
+			id: instance.id,
+			label: instance.label,
+			online: true,
+			total: tr.total,
+			downloading: tr.downloading,
+			seeding: tr.seeding,
+			paused: tr.paused,
+			error: tr.error,
+			dlSpeed: tr.dlSpeed,
+			upSpeed: tr.upSpeed,
+			allTimeDownload: tr.allTimeDownload,
+			allTimeUpload: tr.allTimeUpload,
+			freeSpaceOnDisk: tr.freeSpaceOnDisk,
+		}
+	} catch {
+		return base
+	}
+}
+
 instances.get('/stats', async (c) => {
 	const user = c.get('user')
 	const list = db
 		.query<Instance, [number]>('SELECT * FROM instances WHERE user_id = ? ORDER BY created_at')
 		.all(user.id)
 
-	const stats = await Promise.all(list.map(fetchInstanceStats))
+	const stats = await Promise.all(list.map(fetchStatsForInstance))
 	return c.json(stats)
 })
 
@@ -192,6 +254,7 @@ instances.post('/', async (c) => {
 		skip_auth?: boolean
 		agent_enabled?: boolean
 		agent_url?: string
+		kind?: string
 	}>()
 
 	if (!body.label || !body.url) {
@@ -212,8 +275,8 @@ instances.post('/', async (c) => {
 
 	try {
 		const result = db.run(
-			`INSERT INTO instances (user_id, label, url, qbt_username, qbt_password_encrypted, skip_auth, agent_enabled, agent_url)
-			 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+			`INSERT INTO instances (user_id, label, url, qbt_username, qbt_password_encrypted, skip_auth, agent_enabled, agent_url, kind)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			[
 				user.id,
 				body.label,
@@ -223,6 +286,7 @@ instances.post('/', async (c) => {
 				body.skip_auth ? 1 : 0,
 				body.agent_enabled ? 1 : 0,
 				body.agent_url || null,
+				normalizeKind(body.kind),
 			]
 		)
 
@@ -254,6 +318,7 @@ instances.put('/:id', async (c) => {
 		skip_auth?: boolean
 		agent_enabled?: boolean
 		agent_url?: string | null
+		kind?: string
 	}>()
 
 	const existing = db
@@ -300,10 +365,18 @@ instances.put('/:id', async (c) => {
 		updates.push('agent_url = ?')
 		values.push(body.agent_url || null)
 	}
+	if (body.kind !== undefined) {
+		updates.push('kind = ?')
+		values.push(normalizeKind(body.kind))
+	}
 
 	if (updates.length > 0) {
 		values.push(id)
 		db.run(`UPDATE instances SET ${updates.join(', ')} WHERE id = ?`, values)
+	}
+
+	if (body.kind !== undefined && normalizeKind(body.kind) !== normalizeKind(existing.kind)) {
+		clearQbtSession(id)
 	}
 
 	const updated = db.query<Instance, [number]>('SELECT * FROM instances WHERE id = ?').get(id)
@@ -327,7 +400,10 @@ instances.post('/:id/test', async (c) => {
 		return c.json({ error: 'Instance not found' }, 404)
 	}
 
-	const result = await testStoredQbtInstance(instance)
+	const result =
+		normalizeKind(instance.kind) === 'transmission'
+			? await testStoredTransmissionInstance(instance)
+			: await testStoredQbtInstance(instance)
 	if (!result.success) {
 		const status = result.error === 'Invalid credentials' ? 401 : 400
 		return c.json({ error: result.error }, status)
@@ -342,6 +418,7 @@ instances.post('/test', async (c) => {
 		username?: string
 		password?: string
 		skip_auth?: boolean
+		kind?: string
 	}>()
 
 	if (!body.url) {
@@ -358,7 +435,10 @@ instances.post('/test', async (c) => {
 		return c.json({ error: e instanceof Error ? e.message : 'Invalid URL' }, 400)
 	}
 
-	const result = await testQbtConnection(body.url, body.username, body.password, body.skip_auth)
+	const result =
+		normalizeKind(body.kind) === 'transmission'
+			? await testTransmissionConnection(body.url, body.username, body.password, body.skip_auth)
+			: await testQbtConnection(body.url, body.username, body.password, body.skip_auth)
 	if (!result.success) {
 		const status = result.error === 'Invalid credentials' ? 401 : 400
 		return c.json({ error: result.error }, status)

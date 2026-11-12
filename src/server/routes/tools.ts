@@ -55,6 +55,7 @@ tools.post('/orphans/scan', async (c) => {
 	let totalChecked = 0
 
 	for (const instance of instances) {
+		if (instance.kind === 'transmission') continue
 		log.info(`[Orphan Scan] Scanning instance: ${instance.label}`)
 
 		const loginResult = await loginToQbt(instance)

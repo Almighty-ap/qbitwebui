@@ -608,6 +608,12 @@ export async function runCrossSeedScan(options: ScanOptions): Promise<ScanResult
 		return result
 	}
 
+	if (instance.kind === 'transmission') {
+		result.errors.push('Cross-seed is not supported for Transmission instances')
+		result.completedAt = Date.now()
+		return result
+	}
+
 	const delaySeconds = config.delay_seconds ?? DEFAULT_DELAY_SECONDS
 	log.info(
 		`[CrossSeed] Starting scan for instance ${instance.label} (dry_run=${result.dryRun}, force=${options.force}, delay=${delaySeconds}s)`

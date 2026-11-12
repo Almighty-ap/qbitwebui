@@ -1,12 +1,15 @@
 import { decrypt } from './crypto'
 import { fetchWithTls } from './fetch'
 import { log } from './logger'
+import { fetchTransmissionStats } from '../clients/transmission'
 
 interface QbtInstance {
 	url: string
 	qbt_username: string | null
 	qbt_password_encrypted: string | null
 	skip_auth: number
+	kind?: string
+	id?: number
 }
 
 export type QbtLoginResult =
@@ -150,6 +153,12 @@ interface SyncMaindata {
 export async function fetchInstanceTransferStats(
 	instance: QbtInstance
 ): Promise<{ uploaded: number; downloaded: number } | null> {
+	if (instance.kind === 'transmission') {
+		const stats = await fetchTransmissionStats({ ...instance, id: instance.id ?? 0 })
+		if (!stats.online) return null
+		return { uploaded: stats.allTimeUpload, downloaded: stats.allTimeDownload }
+	}
+
 	try {
 		const loginResult = await loginToQbt(instance)
 		if (!loginResult.success) return null

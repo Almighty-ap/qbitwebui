@@ -7,6 +7,6 @@ export function useSyncMaindata() {
 	return useQuery({
 		queryKey: ['syncMaindata', instance.id],
 		queryFn: () => getSyncMaindata(instance.id),
-		refetchInterval: 2000,
+		refetchInterval: instance.kind === 'transmission' ? 5000 : 2000,
 	})
 }

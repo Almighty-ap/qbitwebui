@@ -28,6 +28,7 @@ import {
 import { logout, changePassword } from '../api/auth'
 import { Header } from './Header'
 import { SettingsPanel } from './SettingsPanel'
+import { TransmissionSettingsPanel } from './TransmissionSettingsPanel'
 import { SearchPanel } from './SearchPanel'
 import { FileBrowser } from './FileBrowser'
 import { OrphanManager } from './OrphanManager'
@@ -116,6 +117,7 @@ export function InstanceManager({
 		skip_auth: false,
 		agent_enabled: false,
 		agent_url: '',
+		kind: 'qbittorrent',
 	})
 	const [error, setError] = useState('')
 	const [submitting, setSubmitting] = useState(false)
@@ -209,6 +211,7 @@ export function InstanceManager({
 				skip_auth: false,
 				agent_enabled: false,
 				agent_url: '',
+				kind: 'qbittorrent',
 			})
 			setTestResult(null)
 			await loadInstances()
@@ -250,6 +253,7 @@ export function InstanceManager({
 						username: formData.qbt_username,
 						password: formData.qbt_password,
 						skip_auth: formData.skip_auth,
+						kind: formData.kind,
 					}),
 				})
 			}
@@ -335,6 +339,7 @@ export function InstanceManager({
 			skip_auth: instance.skip_auth,
 			agent_enabled: instance.agent_enabled,
 			agent_url: instance.agent_url || '',
+			kind: instance.kind,
 		})
 		setUseCustomAgentUrl(!!instance.agent_url)
 		setTestResult(null)
@@ -431,11 +436,19 @@ export function InstanceManager({
 							{initialTool === 'indexers' && <SearchPanel />}
 							{initialTool === 'files' && <FileBrowser enabled={filesEnabled} />}
 							{initialTool === 'orphans' && <OrphanManager instances={instances} />}
-							{initialTool === 'rss' && <RSSManager instances={instances} />}
-							{initialTool === 'logs' && <LogViewer instances={instances} />}
-							{initialTool === 'cross-seed' && <CrossSeedManager instances={instances} />}
+							{initialTool === 'rss' && (
+								<RSSManager instances={instances.filter((i) => i.capabilities?.rss)} />
+							)}
+							{initialTool === 'logs' && (
+								<LogViewer instances={instances.filter((i) => i.capabilities?.logs)} />
+							)}
+							{initialTool === 'cross-seed' && (
+								<CrossSeedManager instances={instances.filter((i) => i.capabilities?.crossSeed)} />
+							)}
 							{initialTool === 'statistics' && <Statistics />}
-							{initialTool === 'network' && <NetworkTools instances={instances} />}
+							{initialTool === 'network' && (
+								<NetworkTools instances={instances.filter((i) => i.capabilities?.networkAgent)} />
+							)}
 						</>
 					) : (
 						<>
@@ -685,6 +698,29 @@ export function InstanceManager({
 									{editingId ? t('instances.edit') : t('instances.add')}
 								</h2>
 								<form onSubmit={handleSubmit} className="space-y-4">
+									<div>
+										<label
+											className="block text-xs font-medium mb-2 uppercase tracking-wider"
+											style={{ color: 'var(--text-muted)' }}
+										>
+											{t('instances.clientType')}
+										</label>
+										<select
+											value={formData.kind ?? 'qbittorrent'}
+											onChange={(e) =>
+												setFormData({ ...formData, kind: e.target.value as 'qbittorrent' | 'transmission' })
+											}
+											className="w-full px-4 py-2.5 rounded-lg border text-sm"
+											style={{
+												backgroundColor: 'var(--bg-tertiary)',
+												borderColor: 'var(--border)',
+												color: 'var(--text-primary)',
+											}}
+										>
+											<option value="qbittorrent">qBittorrent</option>
+											<option value="transmission">Transmission</option>
+										</select>
+									</div>
 									<div className="grid grid-cols-2 gap-4">
 										<div>
 											<label
@@ -724,7 +760,11 @@ export function InstanceManager({
 													borderColor: 'var(--border)',
 													color: 'var(--text-primary)',
 												}}
-												placeholder="http://192.168.1.100:8080"
+												placeholder={
+													formData.kind === 'transmission'
+														? 'http://192.168.1.100:9091'
+														: 'http://192.168.1.100:8080'
+												}
 												required
 											/>
 										</div>
@@ -783,6 +823,7 @@ export function InstanceManager({
 										label={t('instances.skipAuthDesc')}
 									/>
 
+									{formData.kind !== 'transmission' && (
 									<Checkbox
 										checked={formData.agent_enabled ?? false}
 										onChange={handleAgentToggle}
@@ -802,8 +843,9 @@ export function InstanceManager({
 											</>
 										}
 									/>
+									)}
 
-									{formData.agent_enabled && (
+									{formData.kind !== 'transmission' && formData.agent_enabled && (
 										<div className="ml-6 space-y-2">
 											<Checkbox
 												checked={useCustomAgentUrl}
@@ -890,9 +932,15 @@ export function InstanceManager({
 							</div>
 						)}
 
-						{settingsInstance && (
-							<SettingsPanel instance={settingsInstance} onClose={() => setSettingsInstance(null)} />
-						)}
+						{settingsInstance &&
+							(settingsInstance.kind === 'transmission' ? (
+								<TransmissionSettingsPanel
+									instance={settingsInstance}
+									onClose={() => setSettingsInstance(null)}
+								/>
+							) : (
+								<SettingsPanel instance={settingsInstance} onClose={() => setSettingsInstance(null)} />
+							))}
 
 						{displayInstances.length === 0 && !showingPanel ? (
 							<div

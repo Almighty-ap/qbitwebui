@@ -30,6 +30,7 @@ db.exec(`
 		qbt_username TEXT,
 		qbt_password_encrypted TEXT,
 		skip_auth INTEGER DEFAULT 0,
+		kind TEXT NOT NULL DEFAULT 'qbittorrent',
 		created_at INTEGER DEFAULT (unixepoch()),
 		UNIQUE(user_id, label)
 	)
@@ -71,6 +72,11 @@ if (!hasAgentUrl && !hasAgentEnabled) {
 }
 if (!hasAgentUrl) {
 	db.exec('ALTER TABLE instances ADD COLUMN agent_url TEXT')
+}
+
+const hasKind = instanceCols.some((c) => c.name === 'kind')
+if (!hasKind) {
+	db.exec("ALTER TABLE instances ADD COLUMN kind TEXT NOT NULL DEFAULT 'qbittorrent'")
 }
 
 db.exec(`
@@ -205,6 +211,7 @@ export interface Instance {
 	skip_auth: number
 	agent_enabled: number
 	agent_url: string | null
+	kind: string
 	created_at: number
 }
 

@@ -1,3 +1,23 @@
+export type ClientKind = 'qbittorrent' | 'transmission'
+
+export interface InstanceCapabilities {
+	kind: ClientKind
+	rss: boolean
+	logs: boolean
+	categories: boolean
+	tags: boolean
+	networkAgent: boolean
+	crossSeed: boolean
+	preferences: 'full' | 'partial' | 'none'
+	torrentExport: boolean
+	trackerEditing: boolean
+	filePriority: boolean
+	rename: boolean
+	setLocation: boolean
+	speedLimits: boolean
+	queueing: boolean
+}
+
 export interface Instance {
 	id: number
 	label: string
@@ -6,6 +26,8 @@ export interface Instance {
 	skip_auth: boolean
 	agent_enabled: boolean
 	agent_url: string | null
+	kind: ClientKind
+	capabilities: InstanceCapabilities
 	created_at: number
 }
 
@@ -17,6 +39,7 @@ export interface CreateInstanceData {
 	skip_auth?: boolean
 	agent_enabled?: boolean
 	agent_url?: string
+	kind?: ClientKind
 }
 
 export interface UpdateInstanceData {
@@ -27,6 +50,7 @@ export interface UpdateInstanceData {
 	skip_auth?: boolean
 	agent_enabled?: boolean
 	agent_url?: string | null
+	kind?: ClientKind
 }
 
 export async function getInstances(): Promise<Instance[]> {

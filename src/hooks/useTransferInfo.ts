@@ -7,6 +7,6 @@ export function useTransferInfo() {
 	return useQuery({
 		queryKey: ['transferInfo', instance.id],
 		queryFn: () => getTransferInfo(instance.id),
-		refetchInterval: 2000,
+		refetchInterval: instance.kind === 'transmission' ? 5000 : 2000,
 	})
 }

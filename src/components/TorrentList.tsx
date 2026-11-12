@@ -41,6 +41,7 @@ import { loadCustomViews, saveCustomViews, createView, viewsAreEqual } from '../
 import { normalizeSearch } from '../utils/format'
 import { COLUMNS, DEFAULT_VISIBLE_COLUMNS, DEFAULT_COLUMN_ORDER, getColumnLabel, type SortKey } from './columns'
 import { usePagination } from '../hooks/usePagination'
+import { useInstance } from '../hooks/useInstance'
 import { useI18n } from '../i18n'
 
 const AddTorrentModal = lazy(() => import('./AddTorrentModal').then((m) => ({ default: m.AddTorrentModal })))
@@ -90,6 +91,7 @@ function ActionButton({
 
 export function TorrentList() {
 	const { t } = useI18n()
+	const instance = useInstance()
 	const [filter, setFilter] = useState<TorrentFilter>('all')
 	const [categoryFilter, setCategoryFilter] = useState<string | null>(null)
 	const [tagFilter, setTagFilter] = useState<string | null>(null)
@@ -537,7 +539,9 @@ export function TorrentList() {
 				<div className="w-px h-5 shrink-0" style={{ backgroundColor: 'var(--border)' }} />
 
 				<div className="flex items-center shrink-0">
-					<CategoryDropdown value={categoryFilter} onChange={setCategoryFilter} categories={categories} />
+					{instance.capabilities?.categories !== false && (
+						<CategoryDropdown value={categoryFilter} onChange={setCategoryFilter} categories={categories} />
+					)}
 					<TagDropdown value={tagFilter} onChange={setTagFilter} tags={tags} />
 					<TrackerDropdown value={trackerFilter} onChange={setTrackerFilter} trackers={uniqueTrackers} />
 				</div>

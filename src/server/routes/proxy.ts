@@ -4,6 +4,7 @@ import { loginToQbt as qbtLogin } from '../utils/qbt'
 import { authMiddleware } from '../middleware/auth'
 import { fetchWithTls } from '../utils/fetch'
 import { log } from '../utils/logger'
+import { handleTransmissionRequest, clearTransmissionSession } from '../clients/transmission'
 
 const proxy = new Hono()
 
@@ -55,6 +56,7 @@ async function getQbtSession(instance: Instance): Promise<string | null> {
 export function clearQbtSession(instanceId: number) {
 	qbtSessions.delete(instanceId)
 	loginInProgress.delete(instanceId)
+	clearTransmissionSession(`instance:${instanceId}`)
 }
 
 proxy.all('/:id/qbt/*', async (c) => {
@@ -71,6 +73,18 @@ proxy.all('/:id/qbt/*', async (c) => {
 
 	if (!instance) {
 		return c.json({ error: 'Instance not found' }, 404)
+	}
+
+	if (instance.kind === 'transmission') {
+		const trPath = c.req.path.replace(`/api/instances/${instanceId}/qbt`, '')
+		try {
+			return await handleTransmissionRequest(c, instance, `instance:${instance.id}`, trPath)
+		} catch (e) {
+			const message = e instanceof Error ? e.message : 'Unknown error'
+			log.error(`Transmission facade failed for instance ${instanceId}: ${message}`)
+			const status = message === 'Invalid credentials' ? 401 : 502
+			return c.json({ error: message }, status)
+		}
 	}
 
 	const path = c.req.path.replace(`/api/instances/${instanceId}/qbt`, '')

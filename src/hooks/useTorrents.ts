@@ -9,7 +9,7 @@ export function useTorrents(options: TorrentFilterOptions = {}) {
 	return useQuery({
 		queryKey: ['torrents', instance.id, options],
 		queryFn: () => api.getTorrents(instance.id, options),
-		refetchInterval: 2000,
+		refetchInterval: instance.kind === 'transmission' ? 5000 : 2000,
 	})
 }
 

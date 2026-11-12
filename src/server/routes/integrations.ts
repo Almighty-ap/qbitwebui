@@ -5,6 +5,7 @@ import { validateUrl } from '../utils/url'
 import { loginToQbt, isTorrentAddSuccessful } from '../utils/qbt'
 import { authMiddleware } from '../middleware/auth'
 import { log } from '../utils/logger'
+import { addTransmissionTorrent } from '../clients/transmission'
 
 const integrations = new Hono()
 
@@ -227,13 +228,61 @@ integrations.post('/:id/grab', async (c) => {
 				qbt_username: string | null
 				qbt_password_encrypted: string | null
 				skip_auth: number
+				kind: string
 			},
 			[number, number]
-		>('SELECT id, url, qbt_username, qbt_password_encrypted, skip_auth FROM instances WHERE id = ? AND user_id = ?')
+		>(
+			'SELECT id, url, qbt_username, qbt_password_encrypted, skip_auth, kind FROM instances WHERE id = ? AND user_id = ?'
+		)
 		.get(body.instanceId, userId)
 
 	if (!instance) {
 		return c.json({ error: 'qBittorrent instance not found' }, 404)
+	}
+
+	if (instance.kind === 'transmission') {
+		try {
+			const addOptions: {
+				url?: string
+				metainfoBase64?: string
+				savepath?: string
+				category?: string
+			} = {}
+			if (body.savepath) addOptions.savepath = body.savepath
+			if (body.category) addOptions.category = body.category
+
+			if (body.magnetUrl) {
+				addOptions.url = body.magnetUrl
+			} else if (body.downloadUrl) {
+				const apiKey = decrypt(integration.api_key_encrypted)
+				const prowlarrHost = new URL(integration.url).host
+				const isAlreadyProxied = body.downloadUrl.includes(prowlarrHost)
+				const fetchUrl = isAlreadyProxied
+					? body.downloadUrl
+					: `${integration.url}/api/v1/indexer/${body.indexerId}/download?link=${encodeURIComponent(body.downloadUrl)}`
+				const torrentRes = await fetch(fetchUrl, {
+					headers: { 'X-Api-Key': apiKey },
+					redirect: 'manual',
+				})
+				const location = torrentRes.headers.get('location')
+				if ((torrentRes.status === 301 || torrentRes.status === 302) && location?.startsWith('magnet:')) {
+					addOptions.url = location.replace(/&amp;/g, '&')
+				} else if (!torrentRes.ok) {
+					return c.json({ error: `Failed to download from Prowlarr: HTTP ${torrentRes.status}` }, 400)
+				} else {
+					const torrentData = await torrentRes.arrayBuffer()
+					addOptions.metainfoBase64 = Buffer.from(torrentData).toString('base64')
+				}
+			} else {
+				return c.json({ error: 'No download URL available' }, 400)
+			}
+
+			await addTransmissionTorrent(`instance:${instance.id}`, instance, addOptions)
+			return c.json({ success: true })
+		} catch (e) {
+			log.error(`Prowlarr grab failed: ${e instanceof Error ? e.message : 'Unknown error'}`)
+			return c.json({ error: 'Failed to grab release' }, 400)
+		}
 	}
 
 	try {

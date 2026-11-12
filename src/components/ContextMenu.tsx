@@ -3,6 +3,7 @@ import { ChevronRight } from 'lucide-react'
 import { PathInput } from './ui/PathInput'
 import { SpeedLimitFields } from './ui/SpeedLimitFields'
 import { usePathHistory } from '../hooks/usePathHistory'
+import { useInstance } from '../hooks/useInstance'
 import {
 	useCategories,
 	useTags,
@@ -36,6 +37,7 @@ type EditorMode = 'rename' | 'savePath' | 'downloadPath' | 'speedLimits' | null
 
 export function ContextMenu({ x, y, torrents, onClose }: Props) {
 	const { t } = useI18n()
+	const instance = useInstance()
 	const [submenu, setSubmenu] = useState<Submenu>(null)
 	const [editorMode, setEditorMode] = useState<EditorMode>(null)
 	const [inputValue, setInputValue] = useState('')
@@ -371,7 +373,9 @@ export function ContextMenu({ x, y, torrents, onClose }: Props) {
 			{showDownloadPath && <MenuItem onClick={startSetDownloadPath}>{t('torrents.changeDownloadPath')}</MenuItem>}
 			<MenuItem onClick={startSetSpeedLimits}>{t('torrents.speedLimits')}</MenuItem>
 			<div className="h-px my-1" style={{ backgroundColor: 'var(--border)' }} />
-			<MenuItem onClick={handleExport}>{t('torrents.export')}</MenuItem>
+			{instance.capabilities?.torrentExport !== false && (
+				<MenuItem onClick={handleExport}>{t('torrents.export')}</MenuItem>
+			)}
 			<MenuItem onClick={() => setSubmenu(submenu === 'delete' ? null : 'delete')} hasSubmenu>
 				{t('common.delete')}
 			</MenuItem>
